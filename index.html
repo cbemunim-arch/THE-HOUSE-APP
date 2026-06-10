@@ -164,6 +164,7 @@ function fbInit() {
         const { _ts, ...remoteData } = remote;
         if ((_ts || 0) > (lastSaveTs || 0)) {
           S = remoteData; lastSaveTs = _ts || 0;
+          ld(); // re-run migration to patch any missing fields
           try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
           upTB(); render();
         }
@@ -180,6 +181,7 @@ function fbInit() {
         if ((_ts || 0) > lastSaveTs + 800) {
           isSyncing = true;
           S = remoteData; lastSaveTs = _ts || 0;
+          ld(); // re-run migration
           try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
           upTB(); render();
           // Show sync toast
@@ -228,8 +230,8 @@ const SMART_CATS={
   'בשר ודגים':['עוף','בשר','דג','סלמון','טונה','כבש','המבורגר','נקניק','שניצל'],
   'ניקיון':['סבון','שמפו','אבקת כביסה','נוזל','ממיס','מנקה','נייר טואלט','מגבת','אשפה'],
   'טיפוח':['קרם','דאודורנט','מברשת','משחת שיניים','ניחוח','פנים'],
-  'פחמימות':['לחם','פיתה','אורז','פסטה','קמח','דגני'],
-  'שימורים':['שימורי','קופסה','רוטב','קטשופ','חמוצים'],
+  "פחמימות":["לחם","פיתה","אורז","פסטה","קמח","דגני"],
+  "שימורים":["שימורי","קופסה","רוטב","קטשופ","חמוצים"],
   'משקאות':['מים','מיץ','קולה','בירה','יין','קפה','תה','שתי'],
 };
 
@@ -246,41 +248,40 @@ const BADGES=[
 ];
 
 const CEX={
-  'מזון ופארמה':['קניות ר.ל./ אושר עד','קניות מכולת','פארמה וטואלטיקה','אוכל מוכן','מזון - כללי'],
-  'פנאי ובילוי':['מסעדה ואוכל בחוץ','מוזאון','חופשות','בילויים ומופעים','חוגים','בייביסיטר','פנאי - כללי'],
-  'ביגוד והנעלה':['ביגוד הורים','ביגוד ילדים','נעליים','ביגוד - כללי'],
-  'תכולת בית':['ריהוט','מוצרי חשמל','משחקים וספרים','כלי בית','תכולת בית - כללי'],
-  'אחזקת בית':['חשמל','מים וביוב','גז','ניקיון','תיקונים','גינה','אחזקת בית - כללי'],
-  'טיפוח':["מספרה","קוסמטיקה","לק ג'ל","טיפוח - כללי"],
-  'חינוך':['בית ספר','מסגרות צהריים','מסגרות יום','צהרון / מטפלת','הסעות','שיעור פרטי','מסגרות קיץ','חוגים ותנועת נוער','חינוך - כללי'],
-  'בריאות':['קופ"ח','ביטוח רפואי נוסף','טיפולים פרטיים','תרופות','שיניים','אופטיקה','בריאות - כללי'],
-  'תחבורה':['דלק','חניה','כבישי אגרה','ביטוח רכב','תחזוקת רכב','תחבורה ציבורית','רישוי','פנגו','תחבורה - כללי'],
-  'דיור':['משכנתה','ועד בית','ארנונה','ביטוח נכס','דיור - כללי'],
-  'תקשורת':['טלפון נייד','טלויזיה ואינטרנט','שירותי תוכן','תקשורת - כללי'],
-  'פיננסים':['עמלות','ביטוח חיים','ביטוח לאומי','פיננסים - כללי'],
-  'נכסים':['קופת גמל','Charles Schwab','BOA','קופת גולדן פיק'],
-  'משפחה':['שמחות משפחה','דמי כיס','עזרה למשפחה','מזונות','משפחה - כללי'],
-  'אירועים ותרומות':['חגים וצרכי דת','אירוע בעבודה','תרומות - ישיבת חורש ירון','תרומות מקימי','תרומות יחד'],
-  'התחייבויות':['החזר חובות חודשי','ריביות משיכת יתר'],
+  "מזון ופארמה":["קניות ר.ל./ אושר עד","קניות מכולת","פארמה וטואלטיקה","אוכל מוכן","מזון - כללי"],
+  "פנאי ובילוי":["מסעדה ואוכל בחוץ","מוזאון","חופשות","בילויים ומופעים","חוגים","בייביסיטר","פנאי - כללי"],
+  "ביגוד והנעלה":["ביגוד הורים","ביגוד ילדים","נעליים","ביגוד - כללי"],
+  "תכולת בית":["ריהוט","מוצרי חשמל","משחקים וספרים","כלי בית","תכולת בית - כללי"],
+  "אחזקת בית":["חשמל","מים וביוב","גז","ניקיון","תיקונים","גינה","אחזקת בית - כללי"],
+  "טיפוח":["מספרה","קוסמטיקה","לק גל","טיפוח - כללי"],
+  "חינוך":["בית ספר","מסגרות צהריים","מסגרות יום","צהרון / מטפלת","הסעות","שיעור פרטי","מסגרות קיץ","חוגים ותנועת נוער","חינוך - כללי"],
+  "בריאות":["קופח","ביטוח רפואי נוסף","טיפולים פרטיים","תרופות","שיניים","אופטיקה","בריאות - כללי"],
+  "תחבורה":["דלק","חניה","כבישי אגרה","ביטוח רכב","תחזוקת רכב","תחבורה ציבורית","רישוי","פנגו","תחבורה - כללי"],
+  "דיור":["משכנתה","ועד בית","ארנונה","ביטוח נכס","דיור - כללי"],
+  "תקשורת":["טלפון נייד","טלויזיה ואינטרנט","שירותי תוכן","תקשורת - כללי"],
+  "פיננסים":["עמלות","ביטוח חיים","ביטוח לאומי","פיננסים - כללי"],
+  "נכסים":["קופת גמל","Charles Schwab","BOA","קופת גולדן פיק"],
+  "משפחה":["שמחות משפחה","דמי כיס","עזרה למשפחה","מזונות","משפחה - כללי"],
+  "אירועים ותרומות":["חגים וצרכי דת","אירוע בעבודה","תרומות - ישיבת חורש ירון","תרומות מקימי","תרומות יחד"],
+  "התחייבויות":["החזר חובות חודשי","ריביות משיכת יתר"],
 };
-const CIN={'שכר':['שכר גולדן פיק','שכר משרד החינוך','שכר מנעולנות','שכר - כללי'],'קצבאות':['קצבת ילדים','קצבת נכות','קצבת אבטלה','קצבת לידה','מילואים'],'הכנסות שונות':['הכנסות שונות - כללי','ביט/ פייבוקס','ריבית זכות']};
-const DTASKS=[{id:1,name:'לטאטא / לנגב',icon:'🧹',freq:'שבועי',assigned:''},{id:2,name:'כביסה',icon:'👕',freq:'שבועי',assigned:''},{id:3,name:'כלים',icon:'🍽️',freq:'יומי',assigned:''},{id:4,name:'לסדר / לאסוף',icon:'🧺',freq:'יומי',assigned:''},{id:5,name:'להוציא אשפה',icon:'🗑️',freq:'שבועי',assigned:''}];
+const CIN={"שכר":["שכר גולדן פיק","שכר משרד החינוך","שכר מנעולנות","שכר - כללי"],"קצבאות":["קצבת ילדים","קצבת נכות","קצבת אבטלה","קצבת לידה","מילואים"],"הכנסות שונות":["הכנסות שונות - כללי","ביט/ פייבוקס","ריבית זכות"]};
+const DTASKS=[{id:1,name:"לטאטא / לנגב",icon:"🧹",freq:"שבועי",assigned:""},{id:2,name:"כביסה",icon:"👕",freq:"שבועי",assigned:""},{id:3,name:"כלים",icon:"🍽️",freq:"יומי",assigned:""},{id:4,name:"לסדר / לאסוף",icon:"🧺",freq:"יומי",assigned:""},{id:5,name:"להוציא אשפה",icon:"🗑️",freq:"שבועי",assigned:""}];
 
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
 let S,pg='home',sa=0,spinning=false,eAv=null,ePid=null,tPid=null,bTab='log',bM=new Date().getMonth(),bY=new Date().getFullYear(),bCol={},dWk=0,deferredInstall=null;
 
-function ld(){
-  try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r);}catch{}
-    if(!S)S={
+function defaultState(){
+  return {
     players:[
-      {id:1,name:'הורה 1',avatar:'👨',role:'parent',pts:0,xp:0,lvl:1,badges:[]},
-      {id:2,name:'הורה 2',avatar:'👩',role:'parent',pts:0,xp:0,lvl:1,badges:[]},
-      {id:3,name:'ילד 1',avatar:'👦',role:'child',pts:0,xp:0,lvl:1,badges:[]},
-      {id:4,name:'ילד 2',avatar:'👧',role:'child',pts:0,xp:0,lvl:1,badges:[]},
-      {id:5,name:'ילד 3',avatar:'🧒',role:'child',pts:0,xp:0,lvl:1,badges:[]},
-      {id:6,name:'ילד 4',avatar:'👼',role:'child',pts:0,xp:0,lvl:1,badges:[]},
+      {id:1,name:"הורה 1",avatar:"👨",role:"parent",pts:0,xp:0,lvl:1,badges:[]},
+      {id:2,name:"הורה 2",avatar:"👩",role:"parent",pts:0,xp:0,lvl:1,badges:[]},
+      {id:3,name:"ילד 1",avatar:"👦",role:"child",pts:0,xp:0,lvl:1,badges:[]},
+      {id:4,name:"ילד 2",avatar:"👧",role:"child",pts:0,xp:0,lvl:1,badges:[]},
+      {id:5,name:"ילד 3",avatar:"🧒",role:"child",pts:0,xp:0,lvl:1,badges:[]},
+      {id:6,name:"ילד 4",avatar:"👼",role:"child",pts:0,xp:0,lvl:1,badges:[]},
     ],
     aId:1,
     budget:{entries:[],targets:{},recurring:[]},
@@ -291,11 +292,47 @@ function ld(){
     shop:{items:[],trips:0},
     log:[],
   };
-  // migrate old data
-  S.players.forEach(p=>{if(!p.badges)p.badges=[];});
-  if(!S.budget.recurring)S.budget.recurring=[];
-  if(!S.shop.trips)S.shop.trips=0;
-  if(!S.cal.gcEvs)S.cal.gcEvs=[];
+}
+function ld(){
+  try {
+    const r=localStorage.getItem(KEY);
+    if(r) S=JSON.parse(r);
+  } catch(e){ S=null; }
+  // Validate - if S is missing critical fields, reset to default
+  if(!S || !S.players || !Array.isArray(S.players) || S.players.length===0){
+    S=defaultState();
+  }
+  // Migrate - patch any missing fields
+  if(!Array.isArray(S.players)) S.players=defaultState().players;
+  S.players.forEach(p=>{
+    if(!p.badges) p.badges=[];
+    if(!p.role) p.role= (p.id<=2)?'parent':'child';
+    if(p.pts===undefined) p.pts=0;
+    if(p.xp===undefined) p.xp=0;
+    if(p.lvl===undefined) p.lvl=1;
+  });
+  if(!S.budget) S.budget={entries:[],targets:{},recurring:[]};
+  if(!S.budget.entries) S.budget.entries=[];
+  if(!S.budget.targets) S.budget.targets={};
+  if(!S.budget.recurring) S.budget.recurring=[];
+  if(!S.cal) S.cal={events:[],gcTok:null,gcEvs:[],anniversary:null};
+  if(!S.cal.events) S.cal.events=[];
+  if(!S.cal.gcEvs) S.cal.gcEvs=[];
+  // Handle old key names from previous versions
+  if(!S.rom && S.romance) S.rom=S.romance;
+  if(!S.rom) S.rom={dates:[],goal:4};
+  if(!S.rom.dates) S.rom.dates=[];
+  if(!S.rom.goal) S.rom.goal=4;
+  if(!S.din) S.din={plans:{}};
+  if(!S.din.plans) S.din.plans={};
+  if(!S.tasks) S.tasks={list:JSON.parse(JSON.stringify(DTASKS)),comp:[]};
+  if(!S.tasks.list) S.tasks.list=JSON.parse(JSON.stringify(DTASKS));
+  if(!S.tasks.comp) S.tasks.comp=[];
+  if(!S.shop) S.shop={items:[],trips:0};
+  if(!S.shop.items) S.shop.items=[];
+  if(!S.shop.trips) S.shop.trips=0;
+  if(!S.log) S.log=[];
+  if(!S.aId) S.aId=1;
 }
 function sv(){
   try{localStorage.setItem(KEY,JSON.stringify(S));}catch{}
@@ -416,7 +453,12 @@ function render(){
   if(!c){setTimeout(render,50);return;}
   c.innerHTML='';
   const pages={home:pH,budget:pBud,calendar:pCal,romance:pRom,dinner:pDin,tasks:pTsk,shopping:pShp,profile:pProf};
-  if(pages[pg])pages[pg](c);
+  try {
+    if(pages[pg])pages[pg](c);
+  } catch(e) {
+    c.innerHTML='<div style="padding:20px;color:#ff4560;font-size:13px;direction:ltr"><b>Error in '+pg+':</b><br>'+e.message+'<br><pre style="font-size:10px;margin-top:10px;white-space:pre-wrap">'+e.stack+'</pre></div>';
+    console.error('Render error:', e);
+  }
 }
 function upTB(){const p=ga();document.getElementById('tb-av').textContent=p.avatar;document.getElementById('tb-nm').textContent=p.name}
 
@@ -449,15 +491,15 @@ function closeEM(){document.getElementById('em').style.display='none'}
 // HOME PAGE
 // ═══════════════════════════════════════════════════════
 function pH(c){
-  const now=new Date(),total=S.players.reduce((a,p)=>a+p.pts,0);
-  const par=S.players.filter(p=>p.role==='parent'),chi=S.players.filter(p=>p.role==='child');
+  const now=new Date(),total=(S.players||[]).reduce((a,p)=>a+p.pts,0);
+  const par=(S.players||[]).filter(p=>p.role==='parent'),chi=(S.players||[]).filter(p=>p.role==='child');
   const ws=new Date(now);ws.setDate(now.getDate()-now.getDay());
-  const wt=S.tasks.comp.filter(x=>new Date(x.ts)>=ws).length;
-  const md=S.rom.dates.filter(d=>{const dt=new Date(d.date);return dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear()}).length;
-  const te=S.budget.entries.filter(e=>{const d=new Date(e.date);return e.type==='exp'&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()}).reduce((a,e)=>a+e.amt,0);
-  const tb=Object.values(S.budget.targets).reduce((a,v)=>a+(v||0),0);
+  const wt=(S.tasks?.comp||[]).filter(x=>new Date(x.ts)>=ws).length;
+  const md=(S.rom?.dates||[]).filter(d=>{const dt=new Date(d.date);return dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear()}).length;
+  const te=(S.budget?.entries||[]).filter(e=>{const d=new Date(e.date);return e.type==='exp'&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()}).reduce((a,e)=>a+e.amt,0);
+  const tb=Object.values(S.budget?.targets||{}).reduce((a,v)=>a+(v||0),0);
   const bp=tb>0?Math.min(100,Math.round(te/tb*100)):0;
-  const aEvs=[...S.cal.events,...(S.cal.gcEvs||[])].filter(e=>new Date(e.date)>=now).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,3);
+  const aEvs=[...(S.cal?.events||[]),...(S.cal?.gcEvs||[])].filter(e=>new Date(e.date)>=now).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,3);
   const act=ga();
 
   // Anniversary countdown
@@ -906,14 +948,19 @@ function chkOAuth(){
 // INIT
 // ═══════════════════════════════════════════════════════
 function appInit() {
-  ld();
-  applyRecurring();
-  upTB();
-  renderNav();
-  render();
-  chkOAuth();
-  checkAllBadges();
-  setTimeout(fbInit, 300);
+  try {
+    ld();
+    applyRecurring();
+    upTB();
+    renderNav();
+    render();
+    chkOAuth();
+    checkAllBadges();
+    setTimeout(fbInit, 300);
+  } catch(e) {
+    document.getElementById('content').innerHTML='<div style="padding:20px;color:#ff4560;font-size:12px;direction:ltr"><b>Init Error:</b><br>'+e.message+'<br><pre style="font-size:10px;margin-top:8px;white-space:pre-wrap">'+e.stack+'</pre></div>';
+    console.error('Init error:', e);
+  }
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', appInit);
