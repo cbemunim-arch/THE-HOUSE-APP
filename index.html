@@ -996,7 +996,8 @@ function pProf(c){
       <button class="btn-ghost" style="width:100%;margin-bottom:8px" onclick="openQR()">📲 שתף / ייבא נתונים (QR)</button>
       <button class="btn-ghost" style="width:100%;margin-bottom:8px" onclick="exportAllJSON()">💾 גבה נתונים (JSON)</button>
       <label style="display:block;margin-bottom:8px;cursor:pointer"><span style="font-size:12px;color:var(--muted)">📂 שחזר מגיבוי: </span><input type="file" accept=".json" onchange="importJSON(this)" style="font-size:10px"></label>
-      <button class="btn-red" style="width:100%" onclick="if(confirm('למחוק הכל?')){localStorage.removeItem(KEY);location.reload()}">🗑 איפוס מלא</button>
+      <button class="btn-ghost" style="width:100%;margin-bottom:8px;border-color:#FF9800;color:#FF9800" onclick="resetMyPoints()">🔄 אפס את הנקודות שלי בלבד</button>
+      <button class="btn-red" style="width:100%" onclick="fullReset()">🗑 איפוס מלא (כולם + ענן)</button>
     </div>`:''}
   </div>`;
 }
@@ -1051,6 +1052,33 @@ function chkOAuth(){
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
+function resetMyPoints(){
+  if(!confirm('לאפס רק את הנקודות שלך?')) return;
+  const p = S.players.find(x=>x.id===S.aId);
+  if(p){ p.pts=0; p.xp=0; p.lvl=1; p.badges=[]; }
+  S.log = S.log.filter(l=>l.pid!==S.aId);
+  sv();
+  render();
+  toast('🔄 הנקודות שלך אופסו');
+}
+function fullReset(){
+  if(!confirm('למחוק את כל הנתונים לכולם? פעולה זו תמחק גם מהענן ולא ניתן לשחזר!')) return;
+  // Clear Firebase first
+  if(fbReady && fbDB){
+    fbDB.ref('house_data').remove().then(()=>{
+      localStorage.removeItem(KEY);
+      location.reload();
+    }).catch(()=>{
+      // Firebase remove failed, still clear local
+      localStorage.removeItem(KEY);
+      location.reload();
+    });
+  } else {
+    localStorage.removeItem(KEY);
+    location.reload();
+  }
+}
+
 function appInit() {
   try {
     ld();
