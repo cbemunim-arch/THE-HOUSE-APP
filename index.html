@@ -12,9 +12,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#080810;--bg2:#111120;--bg3:#1a1a30;--gold:#FFD700;--gold2:#FFA500;--green:#00C896;--red:#FF4560;--pink:#FF69B4;--blue:#4FC3F7;--text:#E8E8F0;--muted:#666680;--border:#2a2a45;--r:12px}
+[data-theme="light"]{--bg:#f0f2f8;--bg2:#ffffff;--bg3:#e8eaf2;--gold:#c8940a;--gold2:#e07b00;--green:#00956e;--red:#d42a42;--pink:#d44a8a;--blue:#1a88c4;--text:#1a1a2e;--muted:#888898;--border:#d0d4e8;--r:12px}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);font-family:'Heebo',sans-serif;color:var(--text);direction:rtl;margin:0;padding:0}
-input,select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;width:100%;outline:none;transition:border-color .2s}
+html,body{height:100%;background:var(--bg);font-family:'Heebo',sans-serif;color:var(--text);direction:rtl;margin:0;padding:0;transition:background .3s,color .3s}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;width:100%;outline:none;transition:border-color .2s,background .3s,color .3s}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 select option{background:var(--bg2)}
 button{cursor:pointer;font-family:inherit;transition:all .15s}
@@ -26,7 +27,7 @@ button{cursor:pointer;font-family:inherit;transition:all .15s}
 .nav-btn{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;padding:4px 6px;border-radius:7px;min-width:44px;min-height:44px;justify-content:center;-webkit-tap-highlight-color:transparent}
 .nav-btn.active{color:var(--gold);font-weight:700;transform:scale(1.08)}
 .nav-btn .ni{font-size:16px}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:9px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:9px;transition:background .3s,border-color .3s}
 .gold-b{border-color:var(--gold)!important}.green-b{border-color:var(--green)!important}.pink-b{border-color:var(--pink)!important}.red-b{border-color:var(--red)!important}
 .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;padding:8px 16px;border-radius:9px;font-weight:700;font-size:13px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .btn-gold:active{filter:brightness(.9)}
@@ -95,6 +96,7 @@ button{cursor:pointer;font-family:inherit;transition:all .15s}
     <div style="display:flex;align-items:center;gap:7px">
       <div id="sync-ind" title="מתחבר..." style="width:7px;height:7px;border-radius:50%;background:#666;flex-shrink:0;transition:background .5s"></div>
       <span style="font-size:10px;color:var(--muted);letter-spacing:1px">🏠 THE HOUSE ALWAYS WINS</span>
+      <button onclick="toggleTheme()" id="theme-btn" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px;line-height:1" title="עבור מצב תצוגה">🌙</button>
     </div>
     <button onclick="openPicker()" style="background:var(--bg3);border:1px solid var(--gold);border-radius:9px;padding:5px 10px;color:var(--gold);font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px">
       <span id="tb-av">👤</span><span id="tb-nm">טוען...</span><span style="font-size:9px;color:var(--muted)">▼</span>
@@ -516,7 +518,7 @@ function pH(c){
 
   c.innerHTML=`<div class="fade-in">
     ${deferredInstall?`<div class="install-bar"><div><div style="font-size:12px;font-weight:700;color:var(--gold)">📱 התקן כאפליקציה</div><div style="font-size:10px;color:var(--muted)">הוסף למסך הבית</div></div><button class="btn-gold btn-sm" onclick="installPWA()">התקן</button></div>`:''}
-    <div style="text-align:center;padding:10px 0 8px"><div class="hf" style="font-size:50px">🏠</div><h1 class="gs" style="font-size:20px;font-weight:900;margin-top:3px">THE HOUSE</h1><p style="font-size:9px;color:var(--muted);letter-spacing:3px">ALWAYS WINS</p></div>
+    <div style="text-align:center;padding:10px 0 8px"><div class="hf" style="font-size:50px">🏠</div><h1 class="gs" style="font-size:20px;font-weight:900;margin-top:3px">THE HOUSE</h1><h1 class="gs" style="font-size:20px;font-weight:900">ALWAYS WINS</h1></div>
     <div class="card gold-b" style="text-align:center;margin-bottom:10px"><div style="font-size:9px;color:var(--muted)">ניקוד משק הבית</div><div class="gs" style="font-size:34px;font-weight:900">${total.toLocaleString()}</div><div style="font-size:9px;color:var(--muted)">נקודות</div></div>
     <div class="g2" style="margin-bottom:7px">${par.map(p=>pc(p,true)).join('')}</div>
     <div class="g4" style="margin-bottom:10px">${chi.map(p=>pc(p,false)).join('')}</div>
@@ -1079,8 +1081,33 @@ function fullReset(){
   }
 }
 
+function applyTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  const btn = document.getElementById('theme-btn');
+  if(btn) btn.textContent = mode==='light' ? '🌙' : '☀️';
+}
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current==='light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next==='dark' ? '' : 'light');
+  const btn = document.getElementById('theme-btn');
+  if(btn) btn.textContent = next==='light' ? '🌙' : '☀️';
+  try{ localStorage.setItem('haw_theme', next); } catch{}
+}
+function loadTheme(){
+  try{
+    const saved = localStorage.getItem('haw_theme');
+    if(saved==='light'){
+      document.documentElement.setAttribute('data-theme','light');
+      const btn = document.getElementById('theme-btn');
+      if(btn) btn.textContent = '🌙';
+    }
+  } catch{}
+}
+
 function appInit() {
   try {
+    loadTheme();
     ld();
     applyRecurring();
     upTB();
