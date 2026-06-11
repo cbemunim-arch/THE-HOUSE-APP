@@ -162,34 +162,35 @@ function fbInit() {
       const remote = snap.val();
       if (remote) {
         const { _ts, ...remoteData } = remote;
-        if ((_ts || 0) > (lastSaveTs || 0)) {
-          S = remoteData; lastSaveTs = _ts || 0;
-          ld(); // re-run migration to patch any missing fields
-          try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
-          upTB(); render();
-        }
+        const localTs = S?._localTs || 0;
+        // Always use remote data on first load - it's the source of truth
+        S = remoteData;
+        lastSaveTs = _ts || 0;
+        migrate();
+        try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+        upTB(); render();
       } else {
-        // First device — push local data up
+        // First device ever — push local data up
         fbSave();
       }
       // Start listening for live changes
       fbDB.ref('house_data').on('value', snap => {
-        if (isSyncing) return;
-        const remote = snap.val();
-        if (!remote) return;
-        const { _ts, ...remoteData } = remote;
-        if ((_ts || 0) > lastSaveTs + 800) {
-          isSyncing = true;
-          S = remoteData; lastSaveTs = _ts || 0;
-          ld(); // re-run migration
-          try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+        if(isSyncing)return;
+        const remote=snap.val();
+        if(!remote)return;
+        const{_ts,...remoteData}=remote;
+        const remoteTs=_ts||0;
+        if(remoteTs > lastSaveTs+500){
+          isSyncing=true;
+          S=remoteData; lastSaveTs=remoteTs;
+          migrate();
+          try{localStorage.setItem(KEY,JSON.stringify(S));}catch{}
           upTB(); render();
-          // Show sync toast
-          const t = document.getElementById('toast');
-          if (t) { t.textContent = '🔄 עודכן מהענן!'; t.style.background='#0a1a2a'; t.style.border='1px solid #4FC3F7'; t.style.display='block'; clearTimeout(tTmr); tTmr=setTimeout(()=>t.style.display='none',2000); }
-          setTimeout(() => isSyncing = false, 1000);
+          const t=document.getElementById('toast');
+          if(t){t.textContent='🔄 עודכן מהענן!';t.style.background='#0a1a2a';t.style.border='1px solid #4FC3F7';t.style.display='block';clearTimeout(tTmr);tTmr=setTimeout(()=>t.style.display='none',2000);}
+          setTimeout(()=>isSyncing=false,800);
         }
-      });
+      });;
     }).catch(e => {
       console.warn('FB load error:', e);
       const ind = document.getElementById('sync-ind');
@@ -207,7 +208,9 @@ function fbSave() {
   try {
     const ts = Date.now();
     lastSaveTs = ts;
-    fbDB.ref('house_data').set({ ...S, _ts: ts });
+    // Clean data before saving - remove undefined values
+    const clean = JSON.parse(JSON.stringify({ ...S, _ts: ts }));
+    fbDB.ref('house_data').set(clean);
   } catch(e) { console.warn('FB save error:', e); }
 }
 
@@ -293,49 +296,44 @@ function defaultState(){
     log:[],
   };
 }
-function ld(){
-  try {
-    const r=localStorage.getItem(KEY);
-    if(r) S=JSON.parse(r);
-  } catch(e){ S=null; }
-  // Validate - if S is missing critical fields, reset to default
-  if(!S || !S.players || !Array.isArray(S.players) || S.players.length===0){
-    S=defaultState();
-  }
-  // Migrate - patch any missing fields
-  if(!Array.isArray(S.players)) S.players=defaultState().players;
+function migrate(){
+  if(!S || !S.players || !Array.isArray(S.players) || S.players.length===0){S=defaultState();return;}
   S.players.forEach(p=>{
-    if(!p.badges) p.badges=[];
-    if(!p.role) p.role= (p.id<=2)?'parent':'child';
-    if(p.pts===undefined) p.pts=0;
-    if(p.xp===undefined) p.xp=0;
-    if(p.lvl===undefined) p.lvl=1;
+    if(!p.badges)p.badges=[];
+    if(!p.role)p.role=(p.id<=2)?'parent':'child';
+    if(p.pts===undefined)p.pts=0;
+    if(p.xp===undefined)p.xp=0;
+    if(p.lvl===undefined)p.lvl=1;
   });
-  if(!S.budget) S.budget={entries:[],targets:{},recurring:[]};
-  if(!S.budget.entries) S.budget.entries=[];
-  if(!S.budget.targets) S.budget.targets={};
-  if(!S.budget.recurring) S.budget.recurring=[];
-  if(!S.cal) S.cal={events:[],gcTok:null,gcEvs:[],anniversary:null};
-  if(!S.cal.events) S.cal.events=[];
-  if(!S.cal.gcEvs) S.cal.gcEvs=[];
-  // Handle old key names from previous versions
-  if(!S.rom && S.romance) S.rom=S.romance;
-  if(!S.rom) S.rom={dates:[],goal:4};
-  if(!S.rom.dates) S.rom.dates=[];
-  if(!S.rom.goal) S.rom.goal=4;
-  if(!S.din) S.din={plans:{}};
-  if(!S.din.plans) S.din.plans={};
-  if(!S.tasks) S.tasks={list:JSON.parse(JSON.stringify(DTASKS)),comp:[]};
-  if(!S.tasks.list) S.tasks.list=JSON.parse(JSON.stringify(DTASKS));
-  if(!S.tasks.comp) S.tasks.comp=[];
-  if(!S.shop) S.shop={items:[],trips:0};
-  if(!S.shop.items) S.shop.items=[];
-  if(!S.shop.trips) S.shop.trips=0;
-  if(!S.log) S.log=[];
-  if(!S.aId) S.aId=1;
+  if(!S.budget)S.budget={entries:[],targets:{},recurring:[]};
+  if(!S.budget.entries)S.budget.entries=[];
+  if(!S.budget.targets)S.budget.targets={};
+  if(!S.budget.recurring)S.budget.recurring=[];
+  if(!S.cal)S.cal={events:[],gcTok:null,gcEvs:[],anniversary:null};
+  if(!S.cal.events)S.cal.events=[];
+  if(!S.cal.gcEvs)S.cal.gcEvs=[];
+  if(!S.rom&&S.romance)S.rom=S.romance;
+  if(!S.rom)S.rom={dates:[],goal:4};
+  if(!S.rom.dates)S.rom.dates=[];
+  if(!S.rom.goal)S.rom.goal=4;
+  if(!S.din)S.din={plans:{}};
+  if(!S.din.plans)S.din.plans={};
+  if(!S.tasks)S.tasks={list:JSON.parse(JSON.stringify(DTASKS)),comp:[]};
+  if(!S.tasks.list)S.tasks.list=JSON.parse(JSON.stringify(DTASKS));
+  if(!S.tasks.comp)S.tasks.comp=[];
+  if(!S.shop)S.shop={items:[],trips:0};
+  if(!S.shop.items)S.shop.items=[];
+  if(!S.shop.trips)S.shop.trips=0;
+  if(!S.log)S.log=[];
+  if(!S.aId)S.aId=1;
+}
+function ld(){
+  try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r);}catch(e){S=null;}
+  migrate();
 }
 function sv(){
   try{localStorage.setItem(KEY,JSON.stringify(S));}catch{}
+  lastSaveTs = Date.now();
   fbSave();
 }
 function ga(){return S.players.find(p=>p.id===S.aId)||S.players[0]}
@@ -859,41 +857,147 @@ function doneShp(){
 // PROFILE PAGE
 // ═══════════════════════════════════════════════════════
 function pProf(c){
-  const p=ga();
+  const act=ga();
+  // Allow viewing any player's profile
+  if(typeof pProf._viewId === 'undefined') pProf._viewId = act.id;
+  const p = S.players.find(x=>x.id===pProf._viewId) || act;
   const earnedBadges=BADGES.filter(b=>p.badges.includes(b.id));
-  const lockedBadges=BADGES.filter(b=>!p.badges.includes(b.id));
-  const recentLog=S.log.filter(l=>l.pid===p.id).slice(0,10);
-  c.innerHTML=`<div class="fade-in"><h2 class="gold" style="font-weight:700;margin-bottom:12px">👤 פרופיל</h2>
-  <div class="card gold-b" style="margin-bottom:10px">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-      <div style="font-size:44px">${p.avatar}</div>
-      <div style="flex:1"><div style="font-size:18px;font-weight:700">${p.name}</div><div style="color:var(--gold);font-size:12px">${glvl(p.lvl)} — רמה ${p.lvl}</div><div style="font-size:11px;color:var(--muted)">סה"כ ${p.pts.toLocaleString()} נקודות</div></div>
-      <button onclick="openEP(${p.id})" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:12px">✏️ ערוך</button>
+  const recentLog=S.log.filter(l=>l.pid===p.id).slice(0,15);
+  const now=new Date();
+
+  // Stats calculations
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const tasksDone=S.tasks.comp.filter(x=>x.pid===p.id).length;
+  const tasksThisWeek=S.tasks.comp.filter(x=>x.pid===p.id&&new Date(x.ts)>=weekStart).length;
+  const tasksThisMonth=S.tasks.comp.filter(x=>x.pid===p.id&&new Date(x.ts)>=monthStart).length;
+  const datesLogged=S.rom.dates.filter(d=>d.by===p.id).length;
+  const mealsCooked=Object.values(S.din.plans||{}).filter(pl=>pl.done&&pl.cook==p.id).length;
+  const budgetEntries=S.budget.entries.filter(e=>e.by===p.id).length;
+  const shoppingDone=(S.log||[]).filter(l=>l.pid===p.id&&l.rsn&&l.rsn.includes('קניות')).length;
+  const ptsThisMonth=(S.log||[]).filter(l=>l.pid===p.id&&new Date(l.ts)>=monthStart).reduce((a,l)=>a+Math.max(0,l.pts),0);
+  const xpPct=Math.min(100,Math.round((p.xp%200)/2));
+
+  // Leaderboard rank
+  const sorted=[...S.players].sort((a,b)=>b.pts-a.pts);
+  const rank=sorted.findIndex(x=>x.id===p.id)+1;
+  const rankEmoji=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
+
+  c.innerHTML=`<div class="fade-in">
+    <h2 class="gold" style="font-weight:700;margin-bottom:11px">👤 פרופיל</h2>
+
+    <!-- Player selector -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="st" style="margin-bottom:8px">בחר שחקן</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        ${S.players.map(pl=>`<button onclick="pProf._viewId=${pl.id};render()" style="display:flex;align-items:center;gap:5px;background:${pl.id===p.id?'var(--bg3)':'transparent'};border:1px solid ${pl.id===p.id?'var(--gold)':'var(--border)'};border-radius:9px;padding:6px 10px;color:${pl.id===p.id?'var(--gold)':'var(--muted)'};font-size:12px;font-weight:${pl.id===p.id?700:400}">
+          <span style="font-size:18px">${pl.avatar}</span>${pl.name}
+        </button>`).join('')}
+      </div>
     </div>
-    <div style="margin-bottom:4px;font-size:9px;color:var(--muted)">XP לרמה הבאה: ${p.xp%200}/200</div>
-    <div class="xp-bar" style="height:8px;border-radius:4px"><div class="xp-fill" style="width:${Math.min(100,Math.round((p.xp%200)/2))}%;border-radius:4px"></div></div>
-  </div>
 
-  <div class="card" style="margin-bottom:10px">
-    <div class="st">🏆 הישגים (${earnedBadges.length}/${BADGES.length})</div>
-    <div class="badge-grid">
-      ${BADGES.map(b=>{const earned=p.badges.includes(b.id);return`<div class="badge-item ${earned?'earned':'locked'}"><div style="font-size:24px;margin-bottom:4px">${b.icon}</div><div style="font-size:9px;font-weight:600;color:${earned?'var(--gold)':'var(--muted)'}">${b.name}</div><div style="font-size:8px;color:var(--muted)">${b.desc}</div></div>`}).join('')}
+    <!-- Profile card -->
+    <div class="card gold-b" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="font-size:50px">${p.avatar}</div>
+        <div style="flex:1">
+          <div style="font-size:18px;font-weight:700">${p.name}</div>
+          <div style="color:var(--gold);font-size:12px;margin-bottom:2px">${glvl(p.lvl)} — רמה ${p.lvl}</div>
+          <div style="font-size:11px;color:var(--muted)">דירוג: ${rankEmoji} מתוך ${S.players.length} שחקנים</div>
+        </div>
+        ${p.id===act.id?`<button onclick="openEP(${p.id})" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:11px">✏️ ערוך</button>`:''}
+      </div>
+      <div style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:3px">
+          <span>XP לרמה הבאה</span><span>${p.xp%200}/200</span>
+        </div>
+        <div class="xp-bar" style="height:8px;border-radius:4px"><div class="xp-fill" style="width:${xpPct}%;border-radius:4px"></div></div>
+      </div>
+      <div style="text-align:center;font-size:26px;font-weight:900;color:var(--green);margin-top:8px">${p.pts.toLocaleString()} <span style="font-size:13px;color:var(--muted)">נקודות סה"כ</span></div>
     </div>
-  </div>
 
-  <div class="card" style="margin-bottom:10px">
-    <div class="st">📜 היסטוריית נקודות</div>
-    ${recentLog.length===0?'<p class="muted" style="text-align:center;padding:10px;font-size:12px">אין פעילות עדיין</p>':''}
-    ${recentLog.map(l=>`<div class="feed-item"><span style="font-size:14px">${l.icon||'💰'}</span><span style="flex:1">${l.rsn}</span><span style="color:${l.pts>0?'var(--green)':'var(--red)'};font-weight:700;font-size:12px">${l.pts>0?'+':''}${l.pts}</span><span style="font-size:8px;color:var(--muted);margin-right:6px">${new Date(l.ts).toLocaleDateString('he-IL')}</span></div>`).join('')}
-  </div>
+    <!-- Stats grid -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="st">📊 סטטיסטיקות</div>
+      <div class="g3" style="margin-bottom:10px">
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--gold)">${tasksDone}</div>
+          <div style="font-size:9px;color:var(--muted)">משימות סה"כ</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--gold)">${tasksThisWeek}</div>
+          <div style="font-size:9px;color:var(--muted)">השבוע</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--gold)">${tasksThisMonth}</div>
+          <div style="font-size:9px;color:var(--muted)">החודש</div>
+        </div>
+      </div>
+      <div class="g2" style="margin-bottom:10px">
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--pink)">${datesLogged}</div>
+          <div style="font-size:9px;color:var(--muted)">דייטים רשומים</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--green)">${mealsCooked}</div>
+          <div style="font-size:9px;color:var(--muted)">ארוחות בושלו</div>
+        </div>
+      </div>
+      <div class="g2">
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--blue)">${budgetEntries}</div>
+          <div style="font-size:9px;color:var(--muted)">רשומות תקציב</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--gold)">${ptsThisMonth}</div>
+          <div style="font-size:9px;color:var(--muted)">נק' החודש</div>
+        </div>
+      </div>
+    </div>
 
-  <div class="card" style="margin-bottom:10px">
-    <div class="st">⚙️ הגדרות</div>
-    <button class="btn-ghost" style="width:100%;margin-bottom:8px" onclick="openQR()">📲 שתף / ייבא נתונים (QR)</button>
-    <button class="btn-ghost" style="width:100%;margin-bottom:8px" onclick="exportAllJSON()">💾 גבה נתונים (JSON)</button>
-    <label style="display:block;margin-bottom:8px"><input type="file" accept=".json" onchange="importJSON(this)" style="font-size:11px"> 📂 שחזר מגיבוי</label>
-    <button class="btn-red" style="width:100%" onclick="if(confirm('למחוק הכל?')){localStorage.removeItem(KEY);location.reload()}">🗑 איפוס מלא</button>
-  </div>
+    <!-- Mini leaderboard -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="st">🏆 טבלת מובילים</div>
+      ${[...S.players].sort((a,b)=>b.pts-a.pts).map((pl,i)=>{
+        const r=i===0?'🥇':i===1?'🥈':i===2?'🥉':'  ';
+        const isThis=pl.id===p.id;
+        return`<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);background:${isThis?'rgba(255,215,0,0.05)':'transparent'};border-radius:6px;padding-right:6px">
+          <span style="font-size:16px;width:24px;text-align:center">${r||'#'+(i+1)}</span>
+          <span style="font-size:20px">${pl.avatar}</span>
+          <div style="flex:1"><div style="font-size:12px;font-weight:${isThis?700:500};color:${isThis?'var(--gold)':'var(--text)'}">${pl.name}</div><div style="font-size:9px;color:var(--muted)">${glvl(pl.lvl)} • Lv${pl.lvl}</div></div>
+          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:${isThis?'var(--gold)':'var(--text)'}">${pl.pts.toLocaleString()}</div><div style="font-size:8px;color:var(--muted)">נקודות</div></div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Badges -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="st">🏅 הישגים (${earnedBadges.length}/${BADGES.length})</div>
+      <div class="badge-grid">
+        ${BADGES.map(b=>{const earned=p.badges.includes(b.id);return`<div class="badge-item ${earned?'earned':'locked'}"><div style="font-size:24px;margin-bottom:4px">${b.icon}</div><div style="font-size:9px;font-weight:600;color:${earned?'var(--gold)':'var(--muted)'}">${b.name}</div><div style="font-size:8px;color:var(--muted)">${b.desc}</div></div>`}).join('')}
+      </div>
+    </div>
+
+    <!-- Points history -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="st">📜 היסטוריית נקודות</div>
+      ${recentLog.length===0?'<p class="muted" style="text-align:center;padding:10px;font-size:12px">אין פעילות עדיין</p>':''}
+      ${recentLog.map(l=>`<div class="feed-item">
+        <span style="font-size:14px">${l.icon||'💰'}</span>
+        <span style="flex:1;font-size:11px">${l.rsn}</span>
+        <span style="color:${l.pts>0?'var(--green)':'var(--red)'};font-weight:700;font-size:12px;margin-left:6px">${l.pts>0?'+':''}${l.pts}</span>
+        <span style="font-size:8px;color:var(--muted);margin-right:4px">${new Date(l.ts).toLocaleDateString('he-IL')}</span>
+      </div>`).join('')}
+    </div>
+
+    <!-- Settings (only show for active player) -->
+    ${p.id===act.id?`<div class="card" style="margin-bottom:10px">
+      <div class="st">⚙️ הגדרות</div>
+      <button class="btn-ghost" style="width:100%;margin-bottom:8px" onclick="openQR()">📲 שתף / ייבא נתונים (QR)</button>
+      <button class="btn-ghost" style="width:100%;margin-bottom:8px" onclick="exportAllJSON()">💾 גבה נתונים (JSON)</button>
+      <label style="display:block;margin-bottom:8px;cursor:pointer"><span style="font-size:12px;color:var(--muted)">📂 שחזר מגיבוי: </span><input type="file" accept=".json" onchange="importJSON(this)" style="font-size:10px"></label>
+      <button class="btn-red" style="width:100%" onclick="if(confirm('למחוק הכל?')){localStorage.removeItem(KEY);location.reload()}">🗑 איפוס מלא</button>
+    </div>`:''}
   </div>`;
 }
 
