@@ -700,7 +700,7 @@ function exportCSV(){
 function pCal(c){
   const now=new Date();
   // Auto-refresh Google Calendar if older than 7 days
-  if(S.cal.gcTok&&(!S.cal.gcLastFetch||Date.now()-S.cal.gcLastFetch>604800000))setTimeout(refGC,800);
+  if(S.cal.gcTok&&(!S.cal.gcLastFetch||Date.now()-S.cal.gcLastFetch>604800000))setTimeout(()=>refGC(),800);
 
   const [calYear,setCalYear]=[typeof pCal._y!=='undefined'?pCal._y:now.getFullYear(),v=>{pCal._y=v;render();}];
   const [calMonth,setCalMonth]=[typeof pCal._m!=='undefined'?pCal._m:now.getMonth(),v=>{pCal._m=v;render();}];
