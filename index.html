@@ -700,7 +700,7 @@ function exportCSV(){
 function pCal(c){
   const now=new Date();
   // Auto-refresh Google Calendar if older than 7 days
-  if(S.cal.gcTok&&(!S.cal.gcLastFetch||Date.now()-S.cal.gcLastFetch>604800000))setTimeout(()=>refGC(),800);
+  if(S.cal.gcTok&&(!S.cal.gcLastFetch||Date.now()-S.cal.gcLastFetch>604800000))setTimeout(refGC,800);
 
   const [calYear,setCalYear]=[typeof pCal._y!=='undefined'?pCal._y:now.getFullYear(),v=>{pCal._y=v;render();}];
   const [calMonth,setCalMonth]=[typeof pCal._m!=='undefined'?pCal._m:now.getMonth(),v=>{pCal._m=v;render();}];
@@ -797,9 +797,9 @@ function pCal(c){
     <!-- Month navigator -->
     <div class="card" style="margin-bottom:9px">
       <div class="row" style="margin-bottom:10px">
-        <button class="btn-ghost btn-sm" onclick="pCal._m=(calM===0?(pCal._y=(calY-1),11):calM-1);render()">→</button>
+        <button class="btn-ghost btn-sm" onclick="if(calM===0){pCal._y=calY-1;pCal._m=11;}else{pCal._m=calM-1;}render()">→</button>
         <span style="font-weight:700;color:var(--gold)">${MNS[calM]} ${calY}</span>
-        <button class="btn-ghost btn-sm" onclick="pCal._m=(calM===11?(pCal._y=(calY+1),0):calM+1);render()">←</button>
+        <button class="btn-ghost btn-sm" onclick="if(calM===11){pCal._y=calY+1;pCal._m=0;}else{pCal._m=calM+1;}render()">←</button>
       </div>
       <!-- Day headers -->
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
@@ -1199,6 +1199,45 @@ function loadTheme(){
       if(btn) btn.textContent = '🌙';
     }
   } catch{}
+}
+
+function conGC(){
+  const p=new URLSearchParams({client_id:'711890972270-l4jvaduhoc7ightcg3hmkasdtuvkfi8t.apps.googleusercontent.com',redirect_uri:'https://cbemunim-arch.github.io/THE-HOUSE-APP/',response_type:'token',scope:'https://www.googleapis.com/auth/calendar.readonly',state:'gcal'});
+  window.open('https://accounts.google.com/o/oauth2/v2/auth?'+p,'gcal','width=520,height=620');
+}
+async function refGC(){
+  if(!S.cal.gcTok){toast('לא מחובר','err');return;}
+  try{
+    const tMin=new Date().toISOString();
+    const tMax=new Date(Date.now()+90*864e5).toISOString();
+    const res=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime&maxResults=100`,{headers:{Authorization:'Bearer '+S.cal.gcTok}});
+    if(!res.ok)throw new Error('auth');
+    const data=await res.json();
+    S.cal.gcEvs=(data.items||[]).map(e=>({id:'gc'+e.id,title:e.summary||'אירוע',date:e.start?.dateTime||e.start?.date+'T09:00:00',cat:'כללי',note:e.description||'',gcal:true}));
+    S.cal.gcLastFetch=Date.now();
+    sv();
+    toast(`📅 ${S.cal.gcEvs.length} אירועים עודכנו`);
+    render();
+  }catch(err){
+    if(err.message==='auth'){S.cal.gcTok=null;S.cal.gcEvs=[];sv();toast('פג תוקף — התחבר מחדש','err');}
+    else toast('שגיאה בטעינה','err');
+    render();
+  }
+}
+function saveAnn(){const v=document.getElementById('ann-in').value;S.cal.anniversary=v||null;sv();toast('💍 יום נישואין נשמר!');render()}
+function togEF(){const f=document.getElementById('evf');if(f)f.style.display=f.style.display==='none'?'block':'none'}
+function addEv(){
+  const t=document.getElementById('et').value,d=document.getElementById('ed').value,h=document.getElementById('eh').value||'09:00',cat=document.getElementById('ec').value,nt=document.getElementById('en2').value;
+  if(!t||!d){toast('נא למלא כותרת ותאריך','err');return;}
+  S.cal.events.push({id:'ev'+Date.now(),title:t,date:new Date(`${d}T${h}`).toISOString(),cat,nt,by:ga().id});
+  sv();toast('📅 נוסף!');render();
+}
+function chkOAuth(){
+  const h=window.location.hash;
+  if(h.includes('access_token')&&h.includes('gcal')){
+    const p=new URLSearchParams(h.replace('#','?')),tok=p.get('access_token');
+    if(tok){S.cal.gcTok=tok;sv();window.location.hash='';toast('✅ Google Calendar מחובר!');pg='calendar';render();setTimeout(refGC,500)}
+  }
 }
 
 function appInit() {
