@@ -797,9 +797,9 @@ function pCal(c){
     <!-- Month navigator -->
     <div class="card" style="margin-bottom:9px">
       <div class="row" style="margin-bottom:10px">
-        <button class="btn-ghost btn-sm" onclick="if(calM===0){pCal._y=calY-1;pCal._m=11;}else{pCal._m=calM-1;}render()">→</button>
+        <button class="btn-ghost btn-sm" onclick="pCal._m=(pCal._m===undefined?new Date().getMonth():pCal._m);pCal._y=(pCal._y===undefined?new Date().getFullYear():pCal._y);if(pCal._m===0){pCal._y--;pCal._m=11;}else{pCal._m--;}render()">→</button>
         <span style="font-weight:700;color:var(--gold)">${MNS[calM]} ${calY}</span>
-        <button class="btn-ghost btn-sm" onclick="if(calM===11){pCal._y=calY+1;pCal._m=0;}else{pCal._m=calM+1;}render()">←</button>
+        <button class="btn-ghost btn-sm" onclick="pCal._m=(pCal._m===undefined?new Date().getMonth():pCal._m);pCal._y=(pCal._y===undefined?new Date().getFullYear():pCal._y);if(pCal._m===11){pCal._y++;pCal._m=0;}else{pCal._m++;}render()">←</button>
       </div>
       <!-- Day headers -->
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
