@@ -226,7 +226,34 @@ const LVLS=['דילר מתחיל','שחקן קלפים','הייי רולר','ב�
 const WHL=['לבשל ביחד 🍳','ערב סרטים 🎬','פיקניק 🌿','מסעדה 🍣','משחקים 🎲','טיול 🌄','ריקוד בבית 💃','כוכבים ✨'];
 const MNS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const DNS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-const SC=['כללי','פירות וירקות','מוצרי חלב','בשר ודגים','ניקיון','טיפוח','פחמימות','שימורים','משקאות'];
+const SHOP_DB={
+"Appliances":["AA Batteries","BBQ grate","Grill toaster","light bulbs","V9 batteries","water urn","AAA batteries","Small light bulb"],
+"Baby":["baby body soap","baby body soap (Dr Fisher)","Baby bottle","baby bottle brush","baby cup","baby iron","baby q tips","Baby Shampoo","Baby wipes","Diaper cream","Diapers","Diapers #3","Diapers #4","Disposable changing pads","Emol baby oil","Kid's Shampoo","Kids conditioner","Kids' body soap","Little water bottles","Materna","Materna Extra Care 0-6","pacifier","Pool Diapers","vitamin D"],
+"Bakery":["cookies","Lotus cookie spread"],
+"Baking":["almond flour","baking paper","baking powder","Baking soda","Brewer's yeast","Brown Sugar","Canola oil","cellophane","chicken soup mix","chocolate chips","Cocoa powder","Coconut oil","Colorful Sprinkles","cornflour","cranberries","dark chocolate","Date spread","Demarera sugar","dry yeast","Filo Dough","Instant Vanilla Pudding","kosher salt","Lotus cookies","potato starch","Powdered Sugar","pumpkin seeds","Raisins","sesame seeds","sugar","Tin foil","Tin foil (Long)","toothpicks","Vanilla extract","Walnuts","White Chocolate (Parve)","white chocolate chips"],
+"Beverages":["beer","big water bottles (6 pack)","black coffee","canned beer","decaffinated coffee","Grape juice","juice","Orange juice","Small wine bottles","Soda water","tea (Cinnamon)","water bottles","wine"],
+"Bread & Bakery":["corn tortillas","hamburger buns","Pitot","rice cakes","Sliced bread","tea","Tortillas"],
+"Canned Goods":["applesauce","Baby corn","Baked beans","calamata olives","canned Chummus","canned corn","canned mushrooms","olives","Pickles","sprutim/sardines","tomato paste","tuna","white beans"],
+"Cleaning":["bar soap","Cleaning wipes","crockpot cooking bags","dishwashing liquid","windshield fluid"],
+"Condiments & Sauces":["Almond butter","Apple cider vinegar","Balsamic Vinegar","date syrup","Honey","jam","Ketchup","lemon juice","Mayonnaise","Mustard","Nutella","Nutella (Vegan)","Oil","Olive oil","peanut butter","peanut butter (natural)","Schug","Soy Sauce","Sweet and Sour Chili Sauce","tehina","Vinegar"],
+"Dairy & Eggs":["Alternative cream cheese","milk","Almond milk","alternative grated cheese","Alternative Yogurt","Bulgarian cheese 200","butter","cheese","cottage cheese","Cream 38%","eggs","eggs (30 carton)","Grated Cheese 250","herring","Jello","Jelly","margarine","Oat milk","Plain Yogurt (3%)","rich's whip","Tofuti","whipped cream","White cheese","White cheese 500","Yogurt"],
+"Disposable":["aluminum foil","candle oil","disposable big pans","disposable bowls","disposable cups","disposable forks","disposable knives","disposable pans","disposable plates","Disposable salad bowls","Disposable spoons","english cake pans","long matches","plastic water bottle","Sandwich bags"],
+"Dry Goods":["Almonds","Black Lentils","Bread Crumbs","Cannolli pasta","cereal","Cheerios","Chummus","coffee","Coffee Beans","Cornflakes","crackers","Dry fruit","egg noodles","Flour","granola","Green Lentils","kidney beans","Lentils","Matzo Meal","Pecans","popcorn","quick oats","Red Lentils","Rolled oats","Shalva","Sliced almonds","Soup nuts","Split Peas","Sunflower seeds","Sunflower seeds (Shelled)","turkish coffee","Whole wheat flour","pistachios","peanuts"],
+"Frozen Food":["Baby carrots","Bourekas","Bourekas (Parve)","cauliflower","fish","Fish Head","fish sticks","French fries","frozen broccoli","frozen salmon","frozen spinach","Frozen strawberries","frozen veggies","green beans","ground turkey","peas"],
+"Grains & Pasta":["barley","chickpeas","couscous","Matzo","Oatmeal","Pasta","Quinoa","Rice","Rice 5kg"],
+"Health & Beauty":["Almond Oil","Gauze pads","Gauze pads Small","Nail polish remover","Rubbing alcohol"],
+"Household":["Can opener","candles","dishwasher cleaner","fancy disposable bowl","fancy disposable plates","Frying pan (2) Nonstick","Glue sticks","Grater","Kettle","Kid's chairs","paper masking tape","Plastic cover","Set of glass bowls","Spiral notebook"],
+"Household & Cleaning Supplies":["Ant repellant gel","Bleach","broom","Bucket","Candle cups","candle wicks","charcoal","coal","dish soap","Dishwasher capsules","dishwasher detergent","Dishwasher salt","draino","dryer sheets","dustpan","Fabric softener","floor soap","Floor wipes","garbage bags","garbage bags XL","gloves M","Jars","laundry detergent","lighting olive oil","Mesh Bags","mop","Napkins","Paper towels","Roll of small bags","Sano Oxygen spray","Shabbos sponges","shower rod","Silicone spatulas","Silver Polish","Small light bulb","Sponges","Stain remover","steel wool","table plastic","tea lights","toilet brush","window cleaner"],
+"Hygiene Products":["Bars of soap","Bars of soap (dove)","conditioner","Hand soap","head and shoulders","Individual pads","Kid's Toothbrush","kid's toothpaste","Kotex underwear","Large cotton pads","lice shampoo","Liquid body soap","Night Pads","Panty Liners","Panty Liners Extra Long","rexona deoderant","scrubby stuff","Shampoo","shaving blades","tampons","Tissues","toilet paper","toothbrush","toothpaste","women's deoderant"],
+"Meat":["asado","chicken","chicken breast","chicken thighs","chicken wings","Cold cuts","Fillet Medume","ground meat (2 kilos)","Hamburger","Hot dogs","lamb chops","meat","Pupiks","Sausage","steak","Tongue","whole chicken"],
+"Paper Goods":["Disposable Hot Cups","disposable teaspoons"],
+"Pharmacy":["Bandaids","dental floss","Epi pens","Mosquito repellent","sunscreen"],
+"Produce":["apricot","Avocado","bananas","bean sprouts","Beets","Big Ginger root","carrots","celery","cherry tomatoes","clementines","colorabi","coriander","Corn","Cucumbers","Dates","dill","Eggplant","fennel","fresh basil","garlic","grapefruit","Grapes","green apples","Hot Pepper","kiwi","Leeks","Lemons","Lettuce","mango","Maror","Melon","Mushrooms","nectarines","onions","Oranges","parsley","peaches","pears","Peppers","persimmon","plums","pomegranate","potatoes","Pumpkin","Red Apples","red bell pepper","Red Cabbage","Red onion","Squash","starfruit","Sweet potato","Tomatoes","watermelon","white cabbage","yellow apple","yellow bell pepper","Yellow pepper","Zucchini"],
+"Snacks":["apple chips","apropo","Bamba","bisli","cashews","cheetos","Chocolate bars","craisins","Doritos","Gum","Ice cream cones","ice pops","Lollipops","Marshmallows","Nature Valley","Nuts","peanuts","Petite berre","potato chips","Pretzels","Snacks","Wafers","Wafers (Bag of 30)"],
+"Spices":["Black Pepper","cinnamon","cinnamon sticks","cloves","Cumin","Fine Black Pepper","Garlic powder","Ginger","ginger spice","minced garlic","Paprika","peppercorn","salt","tumeric","Turmeric","Zaatar"],
+"Toiletries":["95% alcohol","blow dryer","grease remover","mouthwash","Sticky hooks"]
+};
+
 
 // Smart category keywords
 const SMART_CATS={
@@ -909,51 +936,108 @@ function closeTM(){document.getElementById('tm').style.display='none';tPid=null}
 // ═══════════════════════════════════════════════════════
 function pShp(c){
   const act=S.shop.items.filter(i=>!i.bought),bgt=S.shop.items.filter(i=>i.bought);
-  const byCat=SC.map(cat=>({cat,items:act.filter(i=>i.cat===cat)})).filter(g=>g.items.length>0);
+  const cats=Object.keys(SHOP_DB);
+  const byCat=cats.map(cat=>({cat,items:act.filter(i=>i.cat===cat)})).filter(g=>g.items.length>0);
+  const uncat=act.filter(i=>!cats.includes(i.cat));
   const runningTotal=act.reduce((a,i)=>a+(i.price||0),0);
-  c.innerHTML=`<div class="fade-in"><div class="row" style="margin-bottom:10px"><h2 class="gold" style="font-weight:700">🛒 קניות</h2>${act.length?`<span style="font-size:10px;color:var(--muted)">${act.length} פריטים${runningTotal>0?' • ₪'+runningTotal.toFixed(0):''}  </span>`:''}</div>
-  <div class="card" style="margin-bottom:9px"><div style="display:flex;align-items:flex-start;gap:7px"><span style="font-size:14px">ℹ️</span><div style="font-size:10px;color:var(--muted);line-height:1.6"><b style="color:var(--gold)">OurGroceries</b> — אין API ציבורי, חיבור ישיר לא אפשרי. הרשימה כאן מסונכרנת לכל בני הבית שפותחים את הקובץ. 🛒 עלות קניות מתווספת אוטומטית לתקציב.</div></div></div>
-  <div class="card" style="margin-bottom:9px">
-    <div style="display:flex;gap:7px;margin-bottom:7px"><input id="shn" placeholder="הוסף פריט..." style="flex:1" onkeydown="if(event.key==='Enter')addShp()"><button class="btn-gold btn-sm" onclick="addShp()">+</button></div>
-    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><select id="shc" style="flex:1">${SC.map(x=>`<option>${x}</option>`).join('')}</select><label style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--muted);cursor:pointer;flex-shrink:0"><input type="checkbox" id="shr" style="width:auto"> קבוע</label></div>
-    <div style="display:flex;gap:6px;align-items:center"><input type="number" id="shp" placeholder="מחיר משוער ₪" style="flex:1"></div>
+  const searchVal=pShp._search||'';
+  const selCat=pShp._cat||cats[0];
+  const suggestions=searchVal.length>0?getAllItems().filter(n=>n.toLowerCase().includes(searchVal.toLowerCase())).slice(0,8):[];
+
+  c.innerHTML=`<div class="fade-in"><div class="row" style="margin-bottom:10px"><h2 class="gold" style="font-weight:700">🛒 Shopping</h2>${act.length?`<span style="font-size:10px;color:var(--muted)">${act.length} items${runningTotal>0?' • $'+runningTotal.toFixed(0):''}</span>`:''}</div>
+
+  <div class="card" style="margin-bottom:9px;border-color:var(--border)">
+    <div style="display:flex;align-items:flex-start;gap:7px">
+      <span style="font-size:14px">ℹ️</span>
+      <div style="font-size:10px;color:var(--muted);line-height:1.6"><b style="color:var(--gold)">OurGroceries</b> has no public API — direct connection isn't possible. This list syncs across the household via this app. 🛒 Shopping cost auto-adds to your budget when trip is complete.</div>
+    </div>
   </div>
-  ${byCat.map(({cat,items})=>`<div class="card" style="margin-bottom:7px"><div class="st" style="font-size:10px">${cat}</div>${items.map(item=>{const ab=S.players.find(p=>p.id===item.by);return`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)"><div onclick="togShp(${item.id})" style="width:19px;height:19px;border:2px solid var(--gold);border-radius:4px;cursor:pointer;flex-shrink:0"></div><span style="flex:1;font-size:12px">${item.nm}${item.rec?'<span class="tag" style="background:var(--bg3);color:var(--muted);margin-right:3px">קבוע</span>':''}${ab?`<span style="font-size:9px;color:var(--muted);margin-right:2px">${ab.avatar}</span>`:''}</span>${item.price?`<span style="font-size:10px;color:var(--muted)">₪${item.price}</span>`:''}<button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px">🗑</button></div>`}).join('')}</div>`).join('')}
-  ${bgt.length?`<div class="card" style="margin-bottom:9px"><div class="st" style="color:var(--green);font-size:10px">✅ נרכש (${bgt.length})</div>${bgt.map(item=>{const bb=S.players.find(p=>p.id===item.boughtBy);return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;opacity:0.55"><div onclick="togShp(${item.id})" style="width:19px;height:19px;background:var(--green);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">✓</div><span style="flex:1;font-size:11px;text-decoration:line-through;color:var(--muted)">${item.nm}${bb?' '+bb.avatar:''}</span>${item.price?`<span style="font-size:9px;color:var(--muted)">₪${item.price}</span>`:''}<button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:#444;cursor:pointer;font-size:10px">🗑</button></div>`}).join('')}</div>`:''}
-  ${S.shop.items.length?`<button class="btn-gold" style="width:100%;font-size:13px;padding:11px" onclick="doneShp()">🎉 סיימנו לקנות! (+15)</button>`:''}
-  ${!S.shop.items.length?'<div style="text-align:center;padding:36px 0;color:var(--muted)"><div style="font-size:46px">🛒</div><p style="margin-top:9px;font-size:13px">הרשימה ריקה</p></div>':''}
+
+  <div class="card" style="margin-bottom:9px">
+    <div style="position:relative;margin-bottom:8px">
+      <input id="shsearch" placeholder="Search or add an item..." value="${searchVal}" oninput="pShp._search=this.value;render();setTimeout(()=>{const i=document.getElementById('shsearch');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},0)" onkeydown="if(event.key==='Enter')quickAddShp()">
+      ${suggestions.length?`<div style="position:absolute;top:38px;left:0;right:0;background:var(--bg3);border:1px solid var(--gold);border-radius:8px;z-index:20;max-height:180px;overflow-y:auto">
+        ${suggestions.map(n=>`<div onclick="selectSuggestion('${n.replace(/'/g,"\\'")}')" style="padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)">${n}</div>`).join('')}
+      </div>`:''}
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+      <select id="shc" onchange="pShp._cat=this.value" style="flex:1">${cats.map(x=>`<option ${x===selCat?'selected':''}>${x}</option>`).join('')}</select>
+      <label style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--muted);cursor:pointer;flex-shrink:0"><input type="checkbox" id="shr" style="width:auto"> Recurring</label>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="number" id="shp" placeholder="Est. price $" style="flex:1"></div>
+    <button class="btn-gold" style="width:100%" onclick="quickAddShp()">+ Add Item</button>
+  </div>
+
+  ${byCat.map(({cat,items})=>`<div class="card" style="margin-bottom:7px"><div class="st" style="font-size:10px">${cat}</div>${items.map(item=>{const ab=S.players.find(p=>p.id===item.by);return`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)"><div onclick="togShp(${item.id})" style="width:19px;height:19px;border:2px solid var(--gold);border-radius:4px;cursor:pointer;flex-shrink:0"></div><span style="flex:1;font-size:12px">${item.nm}${item.rec?'<span class="tag" style="background:var(--bg3);color:var(--muted);margin-right:3px">Recurring</span>':''}${ab?`<span style="font-size:9px;color:var(--muted);margin-right:2px">${ab.avatar}</span>`:''}</span>${item.price?`<span style="font-size:10px;color:var(--muted)">$${item.price}</span>`:''}<button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px">🗑</button></div>`}).join('')}</div>`).join('')}
+  ${uncat.length?`<div class="card" style="margin-bottom:7px"><div class="st" style="font-size:10px">Other</div>${uncat.map(item=>{const ab=S.players.find(p=>p.id===item.by);return`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)"><div onclick="togShp(${item.id})" style="width:19px;height:19px;border:2px solid var(--gold);border-radius:4px;cursor:pointer;flex-shrink:0"></div><span style="flex:1;font-size:12px">${item.nm}</span><button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px">🗑</button></div>`}).join('')}</div>`:''}
+
+  ${bgt.length?`<div class="card" style="margin-bottom:9px"><div class="st" style="color:var(--green);font-size:10px">✅ Bought (${bgt.length})</div>${bgt.map(item=>{const bb=S.players.find(p=>p.id===item.boughtBy);return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;opacity:0.55"><div onclick="togShp(${item.id})" style="width:19px;height:19px;background:var(--green);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">✓</div><span style="flex:1;font-size:11px;text-decoration:line-through;color:var(--muted)">${item.nm}${bb?' '+bb.avatar:''}</span>${item.price?`<span style="font-size:9px;color:var(--muted)">$${item.price}</span>`:''}<button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:#444;cursor:pointer;font-size:10px">🗑</button></div>`}).join('')}</div>`:''}
+  ${S.shop.items.length?`<button class="btn-gold" style="width:100%;font-size:13px;padding:11px" onclick="doneShp()">🎉 Trip Complete! (+15)</button>`:''}
+  ${!S.shop.items.length?'<div style="text-align:center;padding:36px 0;color:var(--muted)"><div style="font-size:46px">🛒</div><p style="margin-top:9px;font-size:13px">List is empty</p></div>':''}
   </div>`;
+  setTimeout(()=>{const inp=document.getElementById('shsearch');if(inp&&document.activeElement!==inp&&pShp._search)inp.focus();},10);
 }
-function addShp(){
-  const n=document.getElementById('shn').value.trim();if(!n)return;
-  const autoCat=smartCategory(n);
-  const selCat=document.getElementById('shc').value;
-  const cat=selCat!=='כללי'?selCat:autoCat;
-  const price=parseFloat(document.getElementById('shp').value)||0;
-  S.shop.items.unshift({id:Date.now(),nm:n,cat,rec:document.getElementById('shr').checked,bought:false,by:ga().id,price});
-  document.getElementById('shn').value='';
-  if(autoCat!=='כללי'&&selCat==='כללי')toast(`📦 קטגוריה זוהתה: ${autoCat}`);
+
+function getAllItems(){
+  const builtin=Object.values(SHOP_DB).flat();
+  const custom=S.shop.customItems||[];
+  return [...new Set([...builtin,...custom])];
+}
+
+function selectSuggestion(name){
+  pShp._search=name;
+  document.getElementById('shsearch').value=name;
+  // close suggestions by triggering blur-like render without losing focus
+  const cat=findCatForItem(name);
+  if(cat) pShp._cat=cat;
+  render();
+}
+
+function findCatForItem(name){
+  for(const[cat,items]of Object.entries(SHOP_DB)){
+    if(items.some(i=>i.toLowerCase()===name.toLowerCase())) return cat;
+  }
+  if((S.shop.customItems||[]).some(i=>i.toLowerCase()===name.toLowerCase())){
+    return (S.shop.customCats&&S.shop.customCats[name])||null;
+  }
+  return null;
+}
+
+function quickAddShp(){
+  const name=(pShp._search||document.getElementById('shsearch')?.value||'').trim();
+  if(!name)return;
+  const cat=pShp._cat||Object.keys(SHOP_DB)[0];
+  const price=parseFloat(document.getElementById('shp')?.value)||0;
+  const rec=document.getElementById('shr')?.checked||false;
+  S.shop.items.unshift({id:Date.now(),nm:name,cat,rec,bought:false,by:ga().id,price});
+  // Remember custom item for future autocomplete
+  const known=getAllItems().map(n=>n.toLowerCase());
+  if(!known.includes(name.toLowerCase())){
+    if(!S.shop.customItems)S.shop.customItems=[];
+    S.shop.customItems.push(name);
+    if(!S.shop.customCats)S.shop.customCats={};
+    S.shop.customCats[name]=cat;
+  }
+  pShp._search='';
   sv();render();
 }
+
 function togShp(id){const i=S.shop.items.find(x=>x.id===id);if(!i)return;i.bought=!i.bought;i.boughtBy=ga().id;sv();render()}
 function doneShp(){
-  if(!S.shop.items.filter(i=>!i.rec).every(i=>i.bought)){toast('לא כל הפריטים סומנו!','err');return}
-  // Add shopping total to budget as expense
+  if(!S.shop.items.filter(i=>!i.rec).every(i=>i.bought)){toast('Not all items checked off!','err');return}
   const total=S.shop.items.reduce((a,i)=>a+(i.price||0),0);
   if(total>0){
     const now=new Date();
-    S.budget.entries.unshift({id:Date.now(),day:now.getDate(),type:'exp',mc:'מזון ופארמה',sc:'קניות מכולת',amt:total,py:'אשראי',nt:'קניות - מהרשימה',date:now.toISOString(),by:ga().id});
-    toast(`🛒 ₪${total.toFixed(0)} נוסף לתקציב`);
+    S.budget.entries.unshift({id:Date.now(),day:now.getDate(),type:'exp',mc:'מזון ופארמה',sc:'קניות מכולת',amt:total,py:'אשראי',nt:'Shopping - from list',date:now.toISOString(),by:ga().id});
+    toast(`🛒 $${total.toFixed(0)} added to budget`);
   }
   S.shop.trips=(S.shop.trips||0)+1;
-  award(ga().id,15,'קניות הושלמו! 🛒','🛒');
+  award(ga().id,15,'Shopping trip complete! 🛒','🛒');
   S.shop.items=S.shop.items.filter(i=>i.rec).map(i=>({...i,bought:false}));
   checkAllBadges();sv();render();
 }
 
-// ═══════════════════════════════════════════════════════
-// PROFILE PAGE
-// ═══════════════════════════════════════════════════════
+
 function pProf(c){
   const act=ga();
   // Allow viewing any player's profile
