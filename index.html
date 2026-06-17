@@ -992,8 +992,11 @@ function pShp(c){
 
   <div class="card" style="margin-bottom:9px">
     <div style="position:relative;margin-bottom:8px">
-      <input id="shsearch" placeholder="Search or add an item..." value="${searchVal}" oninput="pShp._search=this.value;render();setTimeout(()=>{const i=document.getElementById('shsearch');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},0)" onkeydown="if(event.key==='Enter')quickAddShp()">
-      ${suggestions.length?`<div style="position:absolute;top:38px;left:0;right:0;background:var(--bg3);border:1px solid var(--gold);border-radius:8px;z-index:20;max-height:180px;overflow-y:auto">
+      <div style="display:flex;gap:6px">
+        <input id="shsearch" placeholder="Search or add an item..." value="${searchVal}" style="flex:1" oninput="pShp._search=this.value;render();setTimeout(()=>{const i=document.getElementById('shsearch');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},0)" onkeydown="if(event.key==='Enter')quickAddShp()">
+        <input id="shqty" type="number" min="1" value="${pShp._qty||1}" oninput="pShp._qty=parseInt(this.value)||1" style="width:54px;flex-shrink:0;text-align:center" title="Quantity">
+      </div>
+      ${suggestions.length?`<div style="position:absolute;top:38px;left:0;right:60px;background:var(--bg3);border:1px solid var(--gold);border-radius:8px;z-index:20;max-height:180px;overflow-y:auto">
         ${suggestions.map(n=>`<div onclick="selectSuggestion('${n.replace(/'/g,"\\'")}')" style="padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)">${n}</div>`).join('')}
       </div>`:''}
     </div>
@@ -1077,11 +1080,12 @@ function quickAddShp(){
   const cat=pShp._cat||Object.keys(SHOP_DB)[0];
   const price=parseFloat(document.getElementById('shp')?.value)||0;
   const rec=document.getElementById('shr')?.checked||false;
+  const qty=parseInt(document.getElementById('shqty')?.value)||1;
   const existing=S.shop.items.find(i=>i.nm.toLowerCase()===name.toLowerCase()&&i.cat===cat&&!i.bought);
   if(existing){
-    existing.qty=(existing.qty||1)+1;
+    existing.qty=(existing.qty||1)+qty;
   } else {
-    S.shop.items.unshift({id:Date.now(),nm:name,cat,rec,bought:false,by:ga().id,price,qty:1});
+    S.shop.items.unshift({id:Date.now(),nm:name,cat,rec,bought:false,by:ga().id,price,qty});
   }
   const known=getAllItems().map(n=>n.toLowerCase());
   if(!known.includes(name.toLowerCase())){
@@ -1091,6 +1095,7 @@ function quickAddShp(){
     S.shop.customCats[name]=cat;
   }
   pShp._search='';
+  pShp._qty=1;
   sv();render();
 }
 
