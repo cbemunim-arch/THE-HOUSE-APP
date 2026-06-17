@@ -966,16 +966,26 @@ function pShp(c){
         </div>
         <div style="max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
           ${SHOP_DB[browseCat].map(item=>{
-            const existing=S.shop.items.find(i=>i.nm===item&&i.cat===browseCat&&!i.bought);
+           const existing=S.shop.items.find(i=>i.nm===item&&i.cat===browseCat&&!i.bought);
             const qty=existing?existing.qty||1:0;
-            return`<button onclick="tapItem('${item.replace(/'/g,"\\'")}','${browseCat.replace(/'/g,"\\'")}')" style="display:flex;justify-content:space-between;align-items:center;background:${qty>0?'rgba(255,215,0,0.1)':'var(--bg3)'};border:1px solid ${qty>0?'var(--gold)':'var(--border)'};border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;text-align:right">
+            return`<button onclick="tapItem('${item.replace(/'/g,"\\\\'")}','${browseCat.replace(/'/g,"\\\\'")}')" style="display:flex;justify-content:space-between;align-items:center;background:${qty>0?'rgba(255,215,0,0.1)':'var(--bg3)'};border:1px solid ${qty>0?'var(--gold)':'var(--border)'};border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;text-align:right">
               <span>${item}</span>
               ${qty>0?`<span style="background:var(--gold);color:#000;border-radius:10px;padding:2px 9px;font-size:12px;font-weight:700;min-width:24px">${qty}</span>`:`<span style="color:var(--muted);font-size:16px">+</span>`}
             </button>`;
           }).join('')}
-        </div>
-      </div>`}
-    </div>`;
+        </div>'''
+
+new_browse_list = '''        <div style="max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
+          ${[...new Set([...SHOP_DB[browseCat],...Object.entries(S.shop.customCats||{}).filter(([n,c])=>c===browseCat).map(([n])=>n)])].map(item=>{
+            const existing=S.shop.items.find(i=>i.nm===item&&i.cat===browseCat&&!i.bought);
+            const qty=existing?existing.qty||1:0;
+            return`<button onclick="tapItem('${item.replace(/'/g,"\\\\'")}','${browseCat.replace(/'/g,"\\\\'")}')" style="display:flex;justify-content:space-between;align-items:center;background:${qty>0?'rgba(255,215,0,0.1)':'var(--bg3)'};border:1px solid ${qty>0?'var(--gold)':'var(--border)'};border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;text-align:right">
+              <span>${item}</span>
+              ${qty>0?`<span style="background:var(--gold);color:#000;border-radius:10px;padding:2px 9px;font-size:12px;font-weight:700;min-width:24px">${qty}</span>`:`<span style="color:var(--muted);font-size:16px">+</span>`}
+            </button>`;
+          }).join('')}
+        </div>'''
+;
     return;
   }
 
