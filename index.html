@@ -939,12 +939,47 @@ function pShp(c){
   const cats=Object.keys(SHOP_DB);
   const byCat=cats.map(cat=>({cat,items:act.filter(i=>i.cat===cat)})).filter(g=>g.items.length>0);
   const uncat=act.filter(i=>!cats.includes(i.cat));
-  const runningTotal=act.reduce((a,i)=>a+(i.price||0),0);
+  const runningTotal=act.reduce((a,i)=>a+(i.price||0)*(i.qty||1),0);
   const searchVal=pShp._search||'';
   const selCat=pShp._cat||cats[0];
+  const browseMode=pShp._browse||false;
+  const browseCat=pShp._browseCat||null;
   const suggestions=searchVal.length>0?getAllItems().filter(n=>n.toLowerCase().includes(searchVal.toLowerCase())).slice(0,8):[];
 
-  c.innerHTML=`<div class="fade-in"><div class="row" style="margin-bottom:10px"><h2 class="gold" style="font-weight:700">🛒 Shopping</h2>${act.length?`<span style="font-size:10px;color:var(--muted)">${act.length} items${runningTotal>0?' • $'+runningTotal.toFixed(0):''}</span>`:''}</div>
+  if(browseMode){
+    c.innerHTML=`<div class="fade-in">
+      <div class="row" style="margin-bottom:10px">
+        <h2 class="gold" style="font-weight:700">📋 Browse Items</h2>
+        <button class="btn-ghost btn-sm" onclick="pShp._browse=false;pShp._browseCat=null;render()">✕ Close</button>
+      </div>
+      ${!browseCat?`<div class="card">
+        <div class="st">Choose a category</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${cats.map(cat=>`<button onclick="pShp._browseCat='${cat.replace(/'/g,"\\'")}';render()" style="display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:13px;text-align:right">
+            <span>${cat}</span><span style="color:var(--muted);font-size:11px">${SHOP_DB[cat].length} items ›</span>
+          </button>`).join('')}
+        </div>
+      </div>`:`<div class="card">
+        <div class="row" style="margin-bottom:10px">
+          <button class="btn-ghost btn-sm" onclick="pShp._browseCat=null;render()">← Back</button>
+          <span class="st" style="margin:0">${browseCat}</span>
+        </div>
+        <div style="max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
+          ${SHOP_DB[browseCat].map(item=>{
+            const existing=S.shop.items.find(i=>i.nm===item&&i.cat===browseCat&&!i.bought);
+            const qty=existing?existing.qty||1:0;
+            return`<button onclick="tapItem('${item.replace(/'/g,"\\'")}','${browseCat.replace(/'/g,"\\'")}')" style="display:flex;justify-content:space-between;align-items:center;background:${qty>0?'rgba(255,215,0,0.1)':'var(--bg3)'};border:1px solid ${qty>0?'var(--gold)':'var(--border)'};border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;text-align:right">
+              <span>${item}</span>
+              ${qty>0?`<span style="background:var(--gold);color:#000;border-radius:10px;padding:2px 9px;font-size:12px;font-weight:700;min-width:24px">${qty}</span>`:`<span style="color:var(--muted);font-size:16px">+</span>`}
+            </button>`;
+          }).join('')}
+        </div>
+      </div>`}
+    </div>`;
+    return;
+  }
+
+  c.innerHTML=`<div class="fade-in"><div class="row" style="margin-bottom:10px"><h2 class="gold" style="font-weight:700">🛒 Shopping</h2>${act.length?`<span style="font-size:10px;color:var(--muted)">${act.reduce((a,i)=>a+(i.qty||1),0)} items${runningTotal>0?' • $'+runningTotal.toFixed(0):''}</span>`:''}</div>
 
   <div class="card" style="margin-bottom:9px;border-color:var(--border)">
     <div style="display:flex;align-items:flex-start;gap:7px">
@@ -952,6 +987,8 @@ function pShp(c){
       <div style="font-size:10px;color:var(--muted);line-height:1.6"><b style="color:var(--gold)">OurGroceries</b> has no public API — direct connection isn't possible. This list syncs across the household via this app. 🛒 Shopping cost auto-adds to your budget when trip is complete.</div>
     </div>
   </div>
+
+  <button class="btn-gold" style="width:100%;margin-bottom:9px;padding:11px" onclick="pShp._browse=true;render()">📋 Browse All Items by Category</button>
 
   <div class="card" style="margin-bottom:9px">
     <div style="position:relative;margin-bottom:8px">
@@ -968,10 +1005,22 @@ function pShp(c){
     <button class="btn-gold" style="width:100%" onclick="quickAddShp()">+ Add Item</button>
   </div>
 
-  ${byCat.map(({cat,items})=>`<div class="card" style="margin-bottom:7px"><div class="st" style="font-size:10px">${cat}</div>${items.map(item=>{const ab=S.players.find(p=>p.id===item.by);return`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)"><div onclick="togShp(${item.id})" style="width:19px;height:19px;border:2px solid var(--gold);border-radius:4px;cursor:pointer;flex-shrink:0"></div><span style="flex:1;font-size:12px">${item.nm}${item.rec?'<span class="tag" style="background:var(--bg3);color:var(--muted);margin-right:3px">Recurring</span>':''}${ab?`<span style="font-size:9px;color:var(--muted);margin-right:2px">${ab.avatar}</span>`:''}</span>${item.price?`<span style="font-size:10px;color:var(--muted)">$${item.price}</span>`:''}<button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px">🗑</button></div>`}).join('')}</div>`).join('')}
-  ${uncat.length?`<div class="card" style="margin-bottom:7px"><div class="st" style="font-size:10px">Other</div>${uncat.map(item=>{const ab=S.players.find(p=>p.id===item.by);return`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)"><div onclick="togShp(${item.id})" style="width:19px;height:19px;border:2px solid var(--gold);border-radius:4px;cursor:pointer;flex-shrink:0"></div><span style="flex:1;font-size:12px">${item.nm}</span><button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px">🗑</button></div>`}).join('')}</div>`:''}
+  ${byCat.map(({cat,items})=>`<div class="card" style="margin-bottom:7px"><div class="st" style="font-size:10px">${cat}</div>${items.map(item=>{const ab=S.players.find(p=>p.id===item.by);return`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)"><div onclick="togShp(${item.id})" style="width:19px;height:19px;border:2px solid var(--gold);border-radius:4px;cursor:pointer;flex-shrink:0"></div><span style="flex:1;font-size:12px">${item.nm}${item.rec?'<span class="tag" style="background:var(--bg3);color:var(--muted);margin-right:3px">Recurring</span>':''}${ab?`<span style="font-size:9px;color:var(--muted);margin-right:2px">${ab.avatar}</span>`:''}</span>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button onclick="changeQty(${item.id},-1)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);width:20px;height:20px;border-radius:5px;font-size:13px;line-height:1;padding:0">−</button>
+      <span style="font-size:12px;font-weight:700;color:var(--gold);min-width:16px;text-align:center">${item.qty||1}</span>
+      <button onclick="changeQty(${item.id},1)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);width:20px;height:20px;border-radius:5px;font-size:13px;line-height:1;padding:0">+</button>
+    </div>
+    ${item.price?`<span style="font-size:10px;color:var(--muted)">$${item.price}</span>`:''}<button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px">🗑</button></div>`}).join('')}</div>`).join('')}
+  ${uncat.length?`<div class="card" style="margin-bottom:7px"><div class="st" style="font-size:10px">Other</div>${uncat.map(item=>{const ab=S.players.find(p=>p.id===item.by);return`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border)"><div onclick="togShp(${item.id})" style="width:19px;height:19px;border:2px solid var(--gold);border-radius:4px;cursor:pointer;flex-shrink:0"></div><span style="flex:1;font-size:12px">${item.nm}</span>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button onclick="changeQty(${item.id},-1)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);width:20px;height:20px;border-radius:5px;font-size:13px;line-height:1;padding:0">−</button>
+      <span style="font-size:12px;font-weight:700;color:var(--gold);min-width:16px;text-align:center">${item.qty||1}</span>
+      <button onclick="changeQty(${item.id},1)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);width:20px;height:20px;border-radius:5px;font-size:13px;line-height:1;padding:0">+</button>
+    </div>
+    <button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px">🗑</button></div>`}).join('')}</div>`:''}
 
-  ${bgt.length?`<div class="card" style="margin-bottom:9px"><div class="st" style="color:var(--green);font-size:10px">✅ Bought (${bgt.length})</div>${bgt.map(item=>{const bb=S.players.find(p=>p.id===item.boughtBy);return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;opacity:0.55"><div onclick="togShp(${item.id})" style="width:19px;height:19px;background:var(--green);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">✓</div><span style="flex:1;font-size:11px;text-decoration:line-through;color:var(--muted)">${item.nm}${bb?' '+bb.avatar:''}</span>${item.price?`<span style="font-size:9px;color:var(--muted)">$${item.price}</span>`:''}<button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:#444;cursor:pointer;font-size:10px">🗑</button></div>`}).join('')}</div>`:''}
+  ${bgt.length?`<div class="card" style="margin-bottom:9px"><div class="st" style="color:var(--green);font-size:10px">✅ Bought (${bgt.length})</div>${bgt.map(item=>{const bb=S.players.find(p=>p.id===item.boughtBy);return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;opacity:0.55"><div onclick="togShp(${item.id})" style="width:19px;height:19px;background:var(--green);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">✓</div><span style="flex:1;font-size:11px;text-decoration:line-through;color:var(--muted)">${item.nm}${item.qty>1?' x'+item.qty:''}${bb?' '+bb.avatar:''}</span>${item.price?`<span style="font-size:9px;color:var(--muted)">$${item.price}</span>`:''}<button onclick="S.shop.items=S.shop.items.filter(i=>i.id!==${item.id});sv();render()" style="background:none;border:none;color:#444;cursor:pointer;font-size:10px">🗑</button></div>`}).join('')}</div>`:''}
   ${S.shop.items.length?`<button class="btn-gold" style="width:100%;font-size:13px;padding:11px" onclick="doneShp()">🎉 Trip Complete! (+15)</button>`:''}
   ${!S.shop.items.length?'<div style="text-align:center;padding:36px 0;color:var(--muted)"><div style="font-size:46px">🛒</div><p style="margin-top:9px;font-size:13px">List is empty</p></div>':''}
   </div>`;
@@ -987,7 +1036,6 @@ function getAllItems(){
 function selectSuggestion(name){
   pShp._search=name;
   document.getElementById('shsearch').value=name;
-  // close suggestions by triggering blur-like render without losing focus
   const cat=findCatForItem(name);
   if(cat) pShp._cat=cat;
   render();
@@ -1003,14 +1051,38 @@ function findCatForItem(name){
   return null;
 }
 
+function tapItem(name,cat){
+  const existing=S.shop.items.find(i=>i.nm===name&&i.cat===cat&&!i.bought);
+  if(existing){
+    existing.qty=(existing.qty||1)+1;
+  } else {
+    S.shop.items.unshift({id:Date.now(),nm:name,cat,rec:false,bought:false,by:ga().id,price:0,qty:1});
+  }
+  sv();render();
+}
+
+function changeQty(id,delta){
+  const item=S.shop.items.find(i=>i.id===id);
+  if(!item)return;
+  item.qty=(item.qty||1)+delta;
+  if(item.qty<=0){
+    S.shop.items=S.shop.items.filter(i=>i.id!==id);
+  }
+  sv();render();
+}
+
 function quickAddShp(){
   const name=(pShp._search||document.getElementById('shsearch')?.value||'').trim();
   if(!name)return;
   const cat=pShp._cat||Object.keys(SHOP_DB)[0];
   const price=parseFloat(document.getElementById('shp')?.value)||0;
   const rec=document.getElementById('shr')?.checked||false;
-  S.shop.items.unshift({id:Date.now(),nm:name,cat,rec,bought:false,by:ga().id,price});
-  // Remember custom item for future autocomplete
+  const existing=S.shop.items.find(i=>i.nm.toLowerCase()===name.toLowerCase()&&i.cat===cat&&!i.bought);
+  if(existing){
+    existing.qty=(existing.qty||1)+1;
+  } else {
+    S.shop.items.unshift({id:Date.now(),nm:name,cat,rec,bought:false,by:ga().id,price,qty:1});
+  }
   const known=getAllItems().map(n=>n.toLowerCase());
   if(!known.includes(name.toLowerCase())){
     if(!S.shop.customItems)S.shop.customItems=[];
@@ -1025,7 +1097,7 @@ function quickAddShp(){
 function togShp(id){const i=S.shop.items.find(x=>x.id===id);if(!i)return;i.bought=!i.bought;i.boughtBy=ga().id;sv();render()}
 function doneShp(){
   if(!S.shop.items.filter(i=>!i.rec).every(i=>i.bought)){toast('Not all items checked off!','err');return}
-  const total=S.shop.items.reduce((a,i)=>a+(i.price||0),0);
+  const total=S.shop.items.reduce((a,i)=>a+(i.price||0)*(i.qty||1),0);
   if(total>0){
     const now=new Date();
     S.budget.entries.unshift({id:Date.now(),day:now.getDate(),type:'exp',mc:'מזון ופארמה',sc:'קניות מכולת',amt:total,py:'אשראי',nt:'Shopping - from list',date:now.toISOString(),by:ga().id});
