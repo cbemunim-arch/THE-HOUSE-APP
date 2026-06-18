@@ -590,10 +590,16 @@ function pBud(c){
     tab=`<div class="card" style="margin-bottom:9px"><div class="st">רישום — ${ga().avatar} ${ga().name}</div>
       <div class="g2" style="margin-bottom:7px">
         <div><div style="font-size:9px;color:var(--muted);margin-bottom:2px">יום</div><input type="number" id="bd" min="1" max="31" value="${new Date().getDate()}"></div>
-        <div><div style="font-size:9px;color:var(--muted);margin-bottom:2px">סוג</div><select id="bt" onchange="updMC()"><option value="exp">הוצאה</option><option value="inc">הכנסה</option></select></div>
+        <div><div style="font-size:9px;color:var(--muted);margin-bottom:2px">סוג</div><select id="bt" onchange="pBud._mc='';pBud._sc='';document.getElementById('bmc-search').value='';document.getElementById('bsc-search').value='';"><option value="exp">הוצאה</option><option value="inc">הכנסה</option></select></div>
       </div>
-      <div style="margin-bottom:7px"><select id="bmc" onchange="updSC()"><option value="">בחר קטגוריה...</option></select></div>
-      <div style="margin-bottom:7px"><select id="bsc"><option value="">בחר תת-קטגוריה...</option></select></div>
+      <div style="position:relative;margin-bottom:7px">
+        <input id="bmc-search" placeholder="חפש או הקלד קטגוריה ראשית..." value="${pBud._mc||''}" oninput="pBud._mc=this.value;pBud._sc='';renderMcSuggestions(this.value)" onfocus="renderMcSuggestions(this.value)" onblur="setTimeout(()=>{const d=document.getElementById('mc-suggestions');if(d)d.style.display='none'},150)">
+        <div id="mc-suggestions" style="position:absolute;top:38px;left:0;right:0;background:var(--bg3);border:1px solid var(--gold);border-radius:8px;z-index:25;max-height:160px;overflow-y:auto;display:none"></div>
+      </div>
+      <div style="position:relative;margin-bottom:7px">
+        <input id="bsc-search" placeholder="חפש או הקלד תת-קטגוריה..." value="${pBud._sc||''}" oninput="pBud._sc=this.value;renderScSuggestions(this.value)" onfocus="renderScSuggestions(this.value)" onblur="setTimeout(()=>{const d=document.getElementById('sc-suggestions');if(d)d.style.display='none'},150)">
+        <div id="sc-suggestions" style="position:absolute;top:38px;left:0;right:0;background:var(--bg3);border:1px solid var(--gold);border-radius:8px;z-index:24;max-height:160px;overflow-y:auto;display:none"></div>
+      </div>
       <div class="g2" style="margin-bottom:7px">
         <div><div style="font-size:9px;color:var(--muted);margin-bottom:2px">סכום ₪</div><input type="number" id="bam" placeholder="0"></div>
         <div><div style="font-size:9px;color:var(--muted);margin-bottom:2px">תשלום</div><select id="bpy"><option>מזומן</option><option>המחאה</option><option selected>אשראי</option><option>הוראת קבע</option><option>תוי קניה</option></select></div>
@@ -636,7 +642,7 @@ function pBud(c){
       pieHtml=`<div class="card" style="margin-bottom:9px"><div class="st">📊 התפלגות הוצאות</div><div style="display:flex;gap:12px;align-items:center"><svg width="160" height="160" viewBox="0 0 160 160">${paths}<circle cx="${cx}" cy="${cy}" r="28" fill="var(--bg2)"/><text x="${cx}" y="${cy+4}" text-anchor="middle" fill="var(--gold)" font-size="10" font-weight="bold">₪${totalExp.toLocaleString()}</text></svg><div style="flex:1">${legend}</div></div></div>`;
     }
     tab=pieHtml+['exp','inc'].map(tp=>{
-      const cats=tp==='exp'?CEX:CIN,lbl=tp==='exp'?'הוצאות':'הכנסות';
+      const cats=getBudgetCatList(tp),lbl=tp==='exp'?'הוצאות':'הכנסות';
       return`<div class="card" style="margin-bottom:9px"><div class="st">${lbl}</div>${Object.entries(cats).map(([cat,subs])=>{
         const ac=ct(mE,cat,tp),tgt=S.budget.targets[cat]||0,pct=tgt>0?Math.min(100,Math.round(ac/tgt*100)):0,bc=pct>100?'var(--red)':pct>80?'#FF9800':'var(--green)';
         return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:2px" onclick="bCol['${cat}']=!bCol['${cat}'];render()">
@@ -693,15 +699,82 @@ function pBud(c){
   <div class="g3" style="margin-bottom:10px"><div class="card" style="text-align:center;padding:9px;border-color:var(--green)"><div style="color:var(--green);font-weight:700;font-size:13px">₪${tI.toLocaleString()}</div><div style="font-size:8px;color:var(--muted)">הכנסות</div></div><div class="card" style="text-align:center;padding:9px;border-color:var(--red)"><div style="color:var(--red);font-weight:700;font-size:13px">₪${tX.toLocaleString()}</div><div style="font-size:8px;color:var(--muted)">הוצאות</div></div><div class="card" style="text-align:center;padding:9px;border-color:${tI-tX>=0?'var(--green)':'var(--red)'}"><div style="color:${tI-tX>=0?'var(--green)':'var(--red)'};font-weight:700;font-size:13px">₪${(tI-tX).toLocaleString()}</div><div style="font-size:8px;color:var(--muted)">הפרש</div></div></div>
   <div style="display:flex;gap:5px;margin-bottom:10px;overflow-x:auto">${Btn('רישום','log')}${Btn('תקציב','budget')}${Btn('השוואה','compare')}${Btn('שנתי','annual')}${Btn('ייצוא','export')}</div>
   ${tab}</div>`;
-  if(bTab==='log')setTimeout(updMC,50);
+  if(bTab==='log'){setTimeout(()=>{renderMcSuggestions('');document.getElementById('mc-suggestions')&&(document.getElementById('mc-suggestions').style.display='none');document.getElementById('sc-suggestions')&&(document.getElementById('sc-suggestions').style.display='none');},30);}
 }
 
 function shBM(d){bM+=d;if(bM>11){bM=0;bY++}if(bM<0){bM=11;bY--}render()}
 function updMC(){const tp=document.getElementById('bt')?.value,cats=tp==='exp'?CEX:CIN,s=document.getElementById('bmc');if(!s)return;s.innerHTML='<option value="">בחר קטגוריה...</option>'+Object.keys(cats).map(c=>`<option value="${c}">${c}</option>`).join('');updSC()}
 function updSC(){const tp=document.getElementById('bt')?.value,mc=document.getElementById('bmc')?.value,cats=tp==='exp'?CEX:CIN,s=document.getElementById('bsc');if(!s)return;s.innerHTML='<option value="">בחר תת-קטגוריה...</option>'+(mc&&cats[mc]?cats[mc].map(x=>`<option>${x}</option>`).join(''):'')}
+function getBudgetCatList(tp){
+  const builtin=tp==='exp'?CEX:CIN;
+  const custom=(S.budget.customCats||{})[tp]||{};
+  const merged={};
+  Object.entries(builtin).forEach(([k,v])=>merged[k]=[...v]);
+  Object.entries(custom).forEach(([k,v])=>{
+    if(merged[k]) merged[k]=[...new Set([...merged[k],...v])];
+    else merged[k]=[...v];
+  });
+  return merged;
+}
+function renderMcSuggestions(val){
+  const tp=document.getElementById('bt')?.value||'exp';
+  const cats=Object.keys(getBudgetCatList(tp));
+  const v=(val||'').toLowerCase();
+  const matches=v?cats.filter(c=>c.toLowerCase().includes(v)):cats;
+  const d=document.getElementById('mc-suggestions');
+  if(!d)return;
+  if(matches.length===0){d.style.display='none';return;}
+  d.innerHTML=matches.map(c=>`<div onmousedown="selectMc('${c.replace(/'/g,"\\'")}')"  style="padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)">${c}</div>`).join('');
+  d.style.display='block';
+}
+function selectMc(cat){
+  pBud._mc=cat; pBud._sc='';
+  document.getElementById('bmc-search').value=cat;
+  document.getElementById('bsc-search').value='';
+  const d=document.getElementById('mc-suggestions'); if(d)d.style.display='none';
+}
+function renderScSuggestions(val){
+  const tp=document.getElementById('bt')?.value||'exp';
+  const mc=pBud._mc||'';
+  const cats=getBudgetCatList(tp);
+  const subs=cats[mc]||[];
+  const v=(val||'').toLowerCase();
+  const matches=v?subs.filter(s=>s.toLowerCase().includes(v)):subs;
+  const d=document.getElementById('sc-suggestions');
+  if(!d)return;
+  if(matches.length===0){d.style.display='none';return;}
+  d.innerHTML=matches.map(s=>`<div onmousedown="selectSc('${s.replace(/'/g,"\\'")}')" style="padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)">${s}</div>`).join('');
+  d.style.display='block';
+}
+function selectSc(sub){
+  pBud._sc=sub;
+  document.getElementById('bsc-search').value=sub;
+  const d=document.getElementById('sc-suggestions'); if(d)d.style.display='none';
+}
 function logBud(){
-  const tp=document.getElementById('bt').value,mc=document.getElementById('bmc').value,sc=document.getElementById('bsc').value,amt=parseFloat(document.getElementById('bam').value),py=document.getElementById('bpy').value,nt=document.getElementById('bnt').value,day=parseInt(document.getElementById('bd').value),isRec=document.getElementById('brec').checked;
+  const tp=document.getElementById('bt').value;
+  const mc=(pBud._mc||document.getElementById('bmc-search')?.value||'').trim();
+  const sc=(pBud._sc||document.getElementById('bsc-search')?.value||'').trim();
+  const amt=parseFloat(document.getElementById('bam').value);
+  const py=document.getElementById('bpy').value;
+  const nt=document.getElementById('bnt').value;
+  const day=parseInt(document.getElementById('bd').value);
+  const isRec=document.getElementById('brec').checked;
   if(!mc||!amt){toast('נא למלא קטגוריה וסכום','err');return}
+  // Save new category/subcategory if not in built-in lists
+  const builtin=tp==='exp'?CEX:CIN;
+  if(!S.budget.customCats)S.budget.customCats={exp:{},inc:{}};
+  if(!S.budget.customCats[tp])S.budget.customCats[tp]={};
+  const isNewMc=!Object.keys(builtin).includes(mc);
+  if(isNewMc&&!S.budget.customCats[tp][mc]) S.budget.customCats[tp][mc]=[];
+  if(sc){
+    const existingSubs=builtin[mc]||[];
+    const customSubs=S.budget.customCats[tp][mc]||[];
+    if(!existingSubs.includes(sc)&&!customSubs.includes(sc)){
+      if(!S.budget.customCats[tp][mc])S.budget.customCats[tp][mc]=[];
+      S.budget.customCats[tp][mc].push(sc);
+    }
+  }
   const id=Date.now();
   const en={id,day,type:tp,mc,sc,amt,py,nt,date:new Date(bY,bM,day).toISOString(),by:ga().id};
   if(isRec){S.budget.recurring.push({id:'r'+id,day,mc,sc,amt,py});toast('🔁 נוסף כהוצאה קבועה!')}
@@ -711,6 +784,7 @@ function logBud(){
   if(tp==='exp'&&tgt>0&&used<=tgt){en.saved=true;award(ga().id,20,'חסכת ב'+mc,'💰')}
   else if(tp==='exp'&&tgt>0&&used>tgt)award(ga().id,-15,'חריגה ב'+mc,'⚠️');
   else{sv();toast('✅ נרשם')}
+  pBud._mc='';pBud._sc='';
   checkAllBadges();render();
 }
 
