@@ -412,20 +412,44 @@ function checkAllBadges(){S.players.forEach(checkBadges);}
 // ═══════════════════════════════════════════════════════
 // RECURRING EXPENSES - auto populate
 // ═══════════════════════════════════════════════════════
-function applyRecurring(){
-  const now=new Date(),m=now.getMonth(),y=now.getFullYear();
+function applyRecurringForMonth(m, y){
+  // Apply recurring expenses for a specific month/year
   (S.budget.recurring||[]).forEach(r=>{
     const exists=S.budget.entries.some(e=>e.rid===r.id&&new Date(e.date).getMonth()===m&&new Date(e.date).getFullYear()===y);
     if(!exists){
       S.budget.entries.push({id:Date.now()+Math.random(),day:r.day||1,type:'exp',mc:r.mc,sc:r.sc,amt:r.amt,py:r.py||'הוראת קבע',nt:'(קבוע)',date:new Date(y,m,r.day||1).toISOString(),by:1,rid:r.id});
-      // also create calendar reminder
-      const evDate=new Date(y,m,r.day||1);
-      if(evDate>=now){
-        S.cal.events.push({id:'rec_'+r.id+'_'+m+'_'+y,title:`💳 ${r.sc||r.mc}`,date:evDate.toISOString(),cat:'חשבון/תשלום',nt:`תשלום קבוע ₪${r.amt}`,auto:true});
-      }
+    }
+  });
+}
+
+function applyRecurring(){
+  const now=new Date();
+  const curM=now.getMonth(), curY=now.getFullYear();
+  // Apply for current month
+  applyRecurringForMonth(curM, curY);
+  // Also apply for past 11 months so history is complete
+  for(let i=1;i<=11;i++){
+    let m=curM-i, y=curY;
+    if(m<0){m+=12;y--;}
+    applyRecurringForMonth(m,y);
+  }
+  // Calendar reminder for current month only
+  (S.budget.recurring||[]).forEach(r=>{
+    const evDate=new Date(curY,curM,r.day||1);
+    const evId='rec_'+r.id+'_'+curM+'_'+curY;
+    if(evDate>=now&&!S.cal.events.some(e=>e.id===evId)){
+      S.cal.events.push({id:evId,title:`💳 ${r.sc||r.mc}`,date:evDate.toISOString(),cat:'חשבון/תשלום',nt:`תשלום קבוע ₪${r.amt}`,auto:true});
     }
   });
   sv();
+}
+
+// Also call when budget tab is viewed, to ensure current viewed month has recurring entries
+function ensureRecurringForMonth(m, y){
+  if(!(S.budget.recurring||[]).length) return;
+  const before=S.budget.entries.length;
+  applyRecurringForMonth(m, y);
+  if(S.budget.entries.length!==before) sv();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -576,6 +600,7 @@ function doSpin(wid,rid){
 // BUDGET PAGE
 // ═══════════════════════════════════════════════════════
 function pBud(c){
+  ensureRecurringForMonth(bM,bY);
   const mE=S.budget.entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===bM&&d.getFullYear()===bY});
   const pm=bM===0?11:bM-1,py=bM===0?bY-1:bY;
   const pE=S.budget.entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===pm&&d.getFullYear()===py});
@@ -777,7 +802,7 @@ function logBud(){
   }
   const id=Date.now();
   const en={id,day,type:tp,mc,sc,amt,py,nt,date:new Date(bY,bM,day).toISOString(),by:ga().id};
-  if(isRec){S.budget.recurring.push({id:'r'+id,day,mc,sc,amt,py});toast('🔁 נוסף כהוצאה קבועה!')}
+  if(isRec){const rid='r'+id;S.budget.recurring.push({id:rid,day,mc,sc,amt,py});en.rid=rid;toast('🔁 נוסף כהוצאה קבועה!')}
   S.budget.entries.unshift(en);
   const mE=S.budget.entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===bM&&d.getFullYear()===bY});
   const tgt=S.budget.targets[mc]||0,used=mE.filter(e=>e.mc===mc&&e.type==='exp').reduce((a,e)=>a+e.amt,0);
