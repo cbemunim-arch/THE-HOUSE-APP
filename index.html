@@ -701,12 +701,22 @@ function pBud(c){
     });
     const rows=allCats.map(([cat,subs])=>{
       const vals=Array.from({length:12},(_,mi)=>mTotals[mi].filter(e=>e.mc===cat&&e.type==='exp').reduce((a,e)=>a+e.amt,0));
-      const avg=vals.reduce((a,v)=>a+v,0)/12;
-      return`<tr><td style="font-size:9px;font-weight:600;color:var(--gold);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</td>${vals.map(v=>`<td style="font-size:8px;color:${v>0?'var(--text)':'var(--muted)'}">${v>0?'₪'+v.toLocaleString():'–'}</td>`).join('')}<td style="font-size:8px;color:var(--gold);font-weight:600">${avg>0?'₪'+Math.round(avg).toLocaleString():'–'}</td></tr>`;
+      const total=vals.reduce((a,v)=>a+v,0);
+      const avg=total/12;
+      return`<tr><td style="font-size:9px;font-weight:600;color:var(--gold);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</td>${vals.map(v=>`<td style="font-size:8px;color:${v>0?'var(--text)':'var(--muted)'}">${v>0?'₪'+v.toLocaleString():'–'}</td>`).join('')}<td style="font-size:8px;color:var(--gold);font-weight:600">${avg>0?'₪'+Math.round(avg).toLocaleString():'–'}</td><td style="font-size:8px;color:var(--text);font-weight:700">${total>0?'₪'+total.toLocaleString():'–'}</td></tr>`;
     }).join('');
+    // Monthly totals row (bottom)
+    const monthlyTotals=Array.from({length:12},(_,mi)=>mTotals[mi].filter(e=>e.type==='exp').reduce((a,e)=>a+e.amt,0));
+    const grandTotal=monthlyTotals.reduce((a,v)=>a+v,0);
+    const avgMonthly=grandTotal/12;
+    const totalsRow=`<tr style="background:var(--bg3)"><td style="font-size:9px;font-weight:700;color:var(--text)">סה"כ</td>${monthlyTotals.map(v=>`<td style="font-size:8px;font-weight:700;color:${v>0?'var(--red)':'var(--muted)'}">${v>0?'₪'+v.toLocaleString():'–'}</td>`).join('')}<td style="font-size:8px;font-weight:700;color:var(--gold)">₪${Math.round(avgMonthly).toLocaleString()}</td><td style="font-size:8px;font-weight:700;color:var(--red)">₪${grandTotal.toLocaleString()}</td></tr>`;
     tab=`<div class="card"><div class="row" style="margin-bottom:10px"><div class="st" style="margin:0">📆 סיכום שנתי ${yr}</div><div style="display:flex;gap:5px"><button class="btn-ghost btn-sm" onclick="bY--;render()">→</button><button class="btn-ghost btn-sm" onclick="bY++;render()">←</button></div></div>
       <div style="overflow-x:auto;max-height:400px;overflow-y:auto">
-        <table class="ann-table"><thead><tr><th>קטגוריה</th>${MNS.map(m=>`<th>${m.slice(0,3)}</th>`).join('')}<th>ממוצע</th></tr></thead><tbody>${rows}</tbody></table>
+        <table class="ann-table"><thead><tr><th>קטגוריה</th>${MNS.map(m=>`<th>${m.slice(0,3)}</th>`).join('')}<th>ממוצע</th><th>סה"כ</th></tr></thead><tbody>${rows}${totalsRow}</tbody></table>
+      </div>
+      <div style="margin-top:10px;text-align:left;padding:10px;background:var(--bg3);border-radius:8px">
+        <span style="font-size:11px;color:var(--muted)">סה"כ שנתי: </span>
+        <span style="font-size:16px;font-weight:700;color:var(--red)">₪${grandTotal.toLocaleString()}</span>
       </div>
     </div>`;
 
